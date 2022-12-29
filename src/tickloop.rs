@@ -1,5 +1,5 @@
 use std::sync::mpsc::Receiver;
-use std::sync::{RwLockWriteGuard, RwLock, Arc};
+use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Duration;
 
@@ -40,12 +40,14 @@ impl<'a, T: Tick> Loop<'a, T> {
                     }
                 }
             }
-            if let Ok(tick) = self.listener
-            .tick(self.tick_length.as_secs_f32(), &mut self.events) {
+            if let Ok(tick) = self
+                .listener
+                .tick(self.tick_length.as_secs_f32(), &mut self.events)
+            {
                 let mut tick_wlock = ticks.write().unwrap();
                 println!("lock aquired {:?}", std::time::Instant::now());
                 (*tick_wlock).update(tick);
-                // Drop the write lock so the read lock can be acquired. 
+                // Drop the write lock so the read lock can be acquired.
             }
             println!("lock dropped {:?}", std::time::Instant::now());
             thread::sleep(self.tick_length);

@@ -8,6 +8,8 @@ use std::{
     thread,
 };
 
+const TPS: u32 = 5;
+
 fn main() {
     // Create a channel to send events to the tickloop
     let (event_sender, event_reciever) = mpsc::channel::<winit::event::Event<'_, ()>>();
@@ -16,7 +18,7 @@ fn main() {
     // Create a WrLock<Ticks> to store the last and new ticks for rendering.
 
     let mut tick_loop: Loop<'_, PrintTick> =
-        saunter::tickloop::Loop::new(Box::new(PrinterListener {}), 2, event_reciever);
+        saunter::tickloop::Loop::new(Box::new(PrinterListener {}), TPS, event_reciever);
 
     let tick_loop_tics = ticks.clone();
     thread::spawn(move || tick_loop.start(tick_loop_tics));
@@ -40,21 +42,27 @@ fn main() {
                 winit::event::StartCause::Poll,
             )))
             .unwrap_or_else(|err| eprintln!("{:?}", err));
-            
+
         let read_ticks = ticks.read().unwrap();
+        
+        //TODO: Make t the actual time since the last tick mapped from 0 to 1.
         let _lerped_tick = read_ticks.lerp(0.5).unwrap_or_default();
     })
 }
 
 struct PrinterListener {}
 impl Listener for PrinterListener {
-    fn tick(&mut self, _dt: f32, events: &mut Vec<winit::event::Event<'_, ()>>) -> Result<PrintTick, SaunterError> {
+    fn tick(
+        &mut self,
+        _dt: f32,
+        events: &mut Vec<winit::event::Event<'_, ()>>,
+    ) -> Result<PrintTick, SaunterError> {
         for event in events {
             if let winit::event::Event::WindowEvent { event, .. } = event {
                 println!("Tick {:?}", event);
             }
         }
-        
+
         Ok(PrintTick {})
     }
 
@@ -64,7 +72,7 @@ impl Listener for PrinterListener {
 #[derive(Clone, Default)]
 pub struct PrintTick {}
 impl saunter::tick::Tick for PrintTick {
-    fn lerp(&self, b: &Self, t: f32) -> Result<Self, MathError> {
+    fn lerp(&self, _b: &Self, _t: f32) -> Result<Self, MathError> {
         Ok(PrintTick {})
     }
 }

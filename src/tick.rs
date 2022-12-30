@@ -1,17 +1,18 @@
 use crate::{error::SaunterError, math::MathError};
 use std::{
     error::Error,
-    fmt::{self, Display, Formatter}, time::Instant,
+    fmt::{self, Display, Formatter, Debug},
+    time::Instant,
 };
 
-pub trait Tick: Clone {
+pub trait Tick: Clone + Debug {
     fn lerp(&self, b: &Self, t: f32) -> Result<Self, MathError>;
+    fn get_time(&self) -> &Instant;
 }
 
 pub struct Ticks<T: Tick> {
     pub last_tick: Option<T>,
     pub new_tick: T,
-    pub start_time: Instant,
 }
 
 impl<T: Tick> Ticks<T> {
@@ -19,7 +20,6 @@ impl<T: Tick> Ticks<T> {
         Ticks {
             last_tick: None,
             new_tick: first,
-            start_time: Instant::now(),
         }
     }
 

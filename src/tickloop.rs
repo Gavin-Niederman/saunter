@@ -30,6 +30,9 @@ impl<'a, T: Tick> Loop<'a, T> {
         }
     }
 
+    //FIXME: The loop runs slower than the tick length.
+    //Probably because of the read lock stopping the loop
+    //or from not checking how long the tick took to compute.
     pub fn start(&mut self, ticks: Arc<RwLock<Ticks<T>>>) {
         loop {
             self.events = self.reciever.try_iter().collect();

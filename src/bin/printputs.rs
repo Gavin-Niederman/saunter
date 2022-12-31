@@ -70,6 +70,7 @@ impl Listener for PrinterListener {
         &mut self,
         _dt: f32,
         events: &mut Vec<winit::event::Event<'_, ()>>,
+        time: Instant,
     ) -> Result<PrintTick, SaunterError> {
         self.val = 1.0 - self.val;
 
@@ -79,7 +80,7 @@ impl Listener for PrinterListener {
             }
         }
 
-        Ok(PrintTick::new(Instant::now(), self.val))
+        Ok(PrintTick::new(time, self.val))
     }
 
     type TickType = PrintTick;

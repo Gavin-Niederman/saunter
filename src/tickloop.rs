@@ -31,10 +31,11 @@ impl<'a, T: Tick> Loop<'a, T> {
     }
 
     //FIXME: The loop runs slower than the tick length.
-    //Probably because of the read lock stopping the loop
-    //or from not checking how long the tick took to compute.
+    //I have no idea why.
     pub fn start(&mut self, ticks: Arc<RwLock<Ticks<T>>>) {
         loop {
+            let tick_time = std::time::Instant::now();
+
             self.events = self.reciever.try_iter().collect();
             for event in self.events.iter() {
                 if let Event::WindowEvent { event, .. } = event {
@@ -45,7 +46,7 @@ impl<'a, T: Tick> Loop<'a, T> {
             }
             if let Ok(tick) = self
                 .listener
-                .tick(self.tick_length.as_secs_f32(), &mut self.events)
+                .tick(self.tick_length.as_secs_f32(), &mut self.events, tick_time)
             {
                 let mut tick_wlock = ticks.write().unwrap();
                 println!("lock aquired {:?}", std::time::Instant::now());
@@ -53,7 +54,10 @@ impl<'a, T: Tick> Loop<'a, T> {
                 // Drop the write lock so the read lock can be acquired.
             }
             println!("lock dropped {:?}", std::time::Instant::now());
-            thread::sleep(self.tick_length);
+
+            if tick_time.elapsed() < self.tick_length {
+                thread::sleep(self.tick_length - tick_time.elapsed());
+            }
         }
     }
 }

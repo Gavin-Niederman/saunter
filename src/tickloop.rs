@@ -1,3 +1,4 @@
+use log;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, RwLock};
 use std::thread;
@@ -31,7 +32,7 @@ impl<'a, T: Tick> Loop<'a, T> {
     }
 
     //FIXME: The loop runs slower than the tick length.
-    //I have no idea why.
+    //This is because thread::sleep() is not 100% accurate.
     pub fn start(&mut self, ticks: Arc<RwLock<Ticks<T>>>) {
         loop {
             let tick_time = std::time::Instant::now();
@@ -44,20 +45,27 @@ impl<'a, T: Tick> Loop<'a, T> {
                     }
                 }
             }
-            if let Ok(tick) = self
-                .listener
-                .tick(self.tick_length.as_secs_f32(), &mut self.events, tick_time)
+            if let Ok(tick) =
+                self.listener
+                    .tick(self.tick_length.as_secs_f32(), &mut self.events, tick_time)
             {
                 let mut tick_wlock = ticks.write().unwrap();
-                println!("lock aquired {:?}", std::time::Instant::now());
+                log::debug!("lock aquired {:?}", std::time::Instant::now());
                 (*tick_wlock).update(tick);
                 // Drop the write lock so the read lock can be acquired.
             }
-            println!("lock dropped {:?}", std::time::Instant::now());
+            log::debug!("lock dropped {:?}", std::time::Instant::now());
 
             if tick_time.elapsed() < self.tick_length {
-                thread::sleep(self.tick_length - tick_time.elapsed());
+                let sleep_time = self.tick_length - tick_time.elapsed();
+                log::debug!(
+                    "sleeping for {:?}, time before {:?}",
+                    sleep_time,
+                    tick_time.elapsed()
+                );
+                thread::sleep(sleep_time);
             }
+            log::debug!("actual tick length {:?}", tick_time.elapsed());
         }
     }
 }

@@ -8,4 +8,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+log = "0.4.17"
 winit = "0.27.5"
+
+[dev-dependencies]
+simplelog = "0.12.0"

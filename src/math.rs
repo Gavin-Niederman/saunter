@@ -1,6 +1,7 @@
 use std::{
     error::Error,
-    fmt::{self, Display, Formatter}, time::{Instant, Duration},
+    fmt::{self, Display, Formatter},
+    time::{Duration, Instant},
 };
 
 #[inline]
@@ -25,9 +26,9 @@ pub fn lerp_vec(list: Vec<(f32, f32)>, t: f32) -> Result<Vec<f32>, MathError> {
 
 #[inline]
 pub fn lerp_instant(a: &Instant, b: &Instant, t: f32) -> Result<Instant, MathError> {
-        let b = b.duration_since(a.clone());
-        a.checked_add(Duration::from_secs_f32(b.as_secs_f32() * t))
-            .ok_or(MathError::InstantOutOfRange)
+    let b = b.duration_since(a.clone());
+    a.checked_add(Duration::from_secs_f32(b.as_secs_f32() * t))
+        .ok_or(MathError::InstantOutOfRange)
 }
 
 #[inline]

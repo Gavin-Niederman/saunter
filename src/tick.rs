@@ -1,7 +1,7 @@
 use crate::{error::SaunterError, math::MathError};
 use std::{
     error::Error,
-    fmt::{self, Display, Formatter, Debug},
+    fmt::{self, Debug, Display, Formatter},
     time::Instant,
 };
 

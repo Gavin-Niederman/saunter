@@ -18,7 +18,7 @@ const TPS: u32 = 2;
 
 fn main() {
     simplelog::TermLogger::init(
-        log::LevelFilter::Debug,
+        log::LevelFilter::Info,
         simplelog::Config::default(),
         simplelog::TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
@@ -43,6 +43,7 @@ fn main() {
 
     let event_loop = winit::event_loop::EventLoop::new();
     let _window = winit::window::WindowBuilder::new()
+        .with_min_inner_size(winit::dpi::LogicalSize::new(10, 10))
         .build(&event_loop)
         .unwrap();
     event_loop.run(move |event, _, control_flow| {
@@ -63,12 +64,10 @@ fn main() {
 
         let read_ticks = ticks.read().unwrap();
 
-        //FIXME: mapped_t is 1 for many frames before the next tick is received.
         if let Some(last) = &read_ticks.last_tick {
-            let mapped_t = math::clamp(
+            let mapped_t = math::max(
                 (last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0,
                 0.0,
-                1.0,
             );
             if let Ok(lerped) = read_ticks.lerp(mapped_t) {
                 let _lerped = lerped;

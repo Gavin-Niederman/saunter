@@ -33,6 +33,7 @@ impl<'a, T: Tick> Loop<'a, T> {
 
     //FIXME: The loop runs slower than the tick length.
     //This is because thread::sleep() is not 100% accurate.
+    //In future this should use a more accurate way to sleep the thread.
     pub fn start(&mut self, ticks: Arc<RwLock<Ticks<T>>>) {
         loop {
             let tick_time = std::time::Instant::now();

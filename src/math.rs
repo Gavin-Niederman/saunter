@@ -42,6 +42,14 @@ pub fn clamp(val: f32, min: f32, max: f32) -> f32 {
     }
 }
 
+pub fn max(a: f32, b: f32) -> f32 {
+    if a > b {
+        a
+    } else {
+        b
+    }
+}
+
 #[derive(Debug)]
 pub enum MathError {
     TOutOfRange,

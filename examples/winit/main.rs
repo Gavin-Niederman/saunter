@@ -1,3 +1,8 @@
+mod listener;
+mod tick;
+use listener::PrinterListener;
+use tick::PrintTick;
+
 use saunter::math;
 use saunter::tick::Tick;
 use saunter::tick::Ticks;
@@ -9,12 +14,7 @@ use std::{
     thread,
 };
 
-mod listener;
-mod tick;
-use listener::PrinterListener;
-use tick::PrintTick;
-
-const TPS: u32 = 2;
+const TPS: u32 = 66;
 
 fn main() {
     simplelog::TermLogger::init(
@@ -23,8 +23,6 @@ fn main() {
         simplelog::TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
     ).unwrap_or(println!("Failed to initialize logger"));
-
-    log::info!("Starting print-inputs example...");
 
     // Create a channel to send events to the tickloop
     let (event_sender, event_reciever) = mpsc::channel::<winit::event::Event<'_, ()>>();
@@ -66,7 +64,7 @@ fn main() {
 
         if let Some(last) = &read_ticks.last_tick {
             let mapped_t = math::max(
-                (last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0,
+                (last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0, //subtract 1 to get the previous tick
                 0.0,
             );
             if let Ok(lerped) = read_ticks.lerp(mapped_t) {

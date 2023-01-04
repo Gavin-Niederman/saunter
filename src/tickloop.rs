@@ -1,7 +1,6 @@
 use log;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, RwLock};
-use std::thread;
 use std::time::Duration;
 
 use winit::event::Event;
@@ -12,6 +11,7 @@ use crate::tick::{Tick, Ticks};
 pub struct Loop<'a, T: Tick> {
     pub listener: Box<dyn listener::Listener<TickType = T>>,
     pub tick_length: Duration,
+    pub tps: u32,
     pub events: Vec<Event<'a, ()>>,
     reciever: Receiver<Event<'a, ()>>,
 }
@@ -26,17 +26,20 @@ impl<'a, T: Tick> Loop<'a, T> {
         Loop {
             listener,
             tick_length,
+            tps,
             events: Vec::new(),
             reciever,
         }
     }
 
-    //FIXME: The loop runs slower than the tick length.
-    //This is because thread::sleep() is not 100% accurate.
-    //In future this should use a more accurate way to sleep the thread.
     pub fn start(&mut self, ticks: Arc<RwLock<Ticks<T>>>) {
+        let mut loop_helper = spin_sleep::LoopHelper::builder()
+            .report_interval_s(0.25)
+            .build_with_target_rate(self.tps as f64);
         loop {
             let tick_time = std::time::Instant::now();
+            loop_helper.loop_start();
+
 
             self.events = self.reciever.try_iter().collect();
             for event in self.events.iter() {
@@ -57,15 +60,8 @@ impl<'a, T: Tick> Loop<'a, T> {
             }
             log::debug!("lock dropped {:?}", std::time::Instant::now());
 
-            if tick_time.elapsed() < self.tick_length {
-                let sleep_time = self.tick_length - tick_time.elapsed();
-                log::debug!(
-                    "sleeping for {:?}, time before {:?}",
-                    sleep_time,
-                    tick_time.elapsed()
-                );
-                thread::sleep(sleep_time);
-            }
+            loop_helper.loop_sleep();
+
             log::debug!("actual tick length {:?}", tick_time.elapsed());
         }
     }

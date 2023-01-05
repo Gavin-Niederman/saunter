@@ -1,8 +1,8 @@
 mod listener;
 mod tick;
-use listener::PrinterListener;
+use listener::WinitListener;
+use tick::WinitTick;
 use saunter::event::Event;
-use tick::PrintTick;
 
 use saunter::math;
 use saunter::tick::{Tick, Ticks};
@@ -27,8 +27,8 @@ fn main() {
         _,
         &'static mut Arc<RwLock<Ticks<_>>>,
     ) = Loop::init(
-        Box::new(PrinterListener { val: 1.0 }),
-        PrintTick::new(Instant::now(), 0.0),
+        Box::new(WinitListener { val: 1.0 }),
+        WinitTick::new(Instant::now(), 0.0),
         TPS,
     );
 

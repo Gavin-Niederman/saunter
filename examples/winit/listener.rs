@@ -2,17 +2,17 @@ use saunter::error::SaunterError;
 use saunter::listener::Listener;
 use std::time::Instant;
 
-use crate::tick::PrintTick;
-pub struct PrinterListener {
+use crate::tick::WinitTick;
+pub struct WinitListener {
     pub val: f32,
 }
-impl Listener for PrinterListener {
+impl Listener for WinitListener {
     fn tick(
         &mut self,
         _dt: f32,
         events: &mut Vec<saunter::event::Event<winit::event::Event<'static, ()>>>,
         time: Instant,
-    ) -> Result<PrintTick, SaunterError> {
+    ) -> Result<WinitTick, SaunterError> {
         self.val = 1.0 - self.val;
 
         for event in events {
@@ -23,9 +23,9 @@ impl Listener for PrinterListener {
             }
         }
 
-        Ok(PrintTick::new(time, self.val))
+        Ok(WinitTick::new(time, self.val))
     }
 
-    type TickType = PrintTick;
+    type TickType = WinitTick;
     type EventType = winit::event::Event<'static, ()>;
 }

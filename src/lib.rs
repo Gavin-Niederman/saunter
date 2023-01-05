@@ -1,6 +1,7 @@
 #![feature(associated_type_defaults)]
 
 pub mod error;
+pub mod event;
 pub mod listener;
 pub mod math;
 pub mod tick;

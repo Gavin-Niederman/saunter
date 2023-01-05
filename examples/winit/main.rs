@@ -1,18 +1,15 @@
 mod listener;
 mod tick;
 use listener::PrinterListener;
+use saunter::event::Event;
 use tick::PrintTick;
 
 use saunter::math;
-use saunter::tick::Tick;
-use saunter::tick::Ticks;
+use saunter::tick::{Tick, Ticks};
 use saunter::tickloop::Loop;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
+use std::thread;
 use std::time::Instant;
-use std::{
-    sync::{mpsc, RwLock},
-    thread,
-};
 
 const TPS: u32 = 66;
 
@@ -22,19 +19,18 @@ fn main() {
         simplelog::Config::default(),
         simplelog::TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
-    ).unwrap_or(println!("Failed to initialize logger"));
+    )
+    .unwrap_or(println!("Failed to initialize logger"));
 
-    // Create a channel to send events to the tickloop
-    let (event_sender, event_reciever) = mpsc::channel::<winit::event::Event<'_, ()>>();
-
-    // Create a static(hence the leak) WrLock<Ticks> to store the last and new ticks for rendering.
-    let ticks = Box::leak(Box::new(Arc::new(RwLock::new(Ticks::new(PrintTick::new(
-        Instant::now(),
-        0.0,
-    ))))));
-
-    let mut tick_loop: Loop<'_, PrintTick> =
-        saunter::tickloop::Loop::new(Box::new(PrinterListener { val: 1.0 }), TPS, event_reciever);
+    let (mut tick_loop, event_sender, ticks): (
+        Loop<PrintTick, winit::event::Event<'_, ()>>,
+        _,
+        &'static mut Arc<RwLock<Ticks<PrintTick>>>,
+    ) = Loop::init(
+        Box::new(PrinterListener { val: 1.0 }),
+        PrintTick::new(Instant::now(), 0.0),
+        TPS,
+    );
 
     let tick_loop_tics = ticks.clone();
     thread::spawn(move || tick_loop.start(tick_loop_tics));
@@ -44,6 +40,7 @@ fn main() {
         .with_min_inner_size(winit::dpi::LogicalSize::new(10, 10))
         .build(&event_loop)
         .unwrap();
+
     event_loop.run(move |event, _, control_flow| {
         control_flow.set_poll();
         if let winit::event::Event::WindowEvent {
@@ -55,8 +52,8 @@ fn main() {
         }
 
         event_sender
-            .send(event.to_static().unwrap_or(winit::event::Event::NewEvents(
-                winit::event::StartCause::Poll,
+            .send(Event::Other(event.to_static().unwrap_or(
+                winit::event::Event::NewEvents(winit::event::StartCause::Poll),
             )))
             .unwrap_or_else(|err| log::error!("{:?}", err));
 

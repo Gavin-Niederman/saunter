@@ -10,14 +10,16 @@ impl Listener for PrinterListener {
     fn tick(
         &mut self,
         _dt: f32,
-        events: &mut Vec<winit::event::Event<'_, ()>>,
+        events: &mut Vec<saunter::event::Event<winit::event::Event<'static, ()>>>,
         time: Instant,
     ) -> Result<PrintTick, SaunterError> {
         self.val = 1.0 - self.val;
 
         for event in events {
-            if let winit::event::Event::WindowEvent { event, .. } = event {
-                log::info!("Tick {:?}", event);
+            if let saunter::event::Event::Other(event) = event {
+                if let winit::event::Event::WindowEvent { event, .. } = event {
+                    log::info!("Tick {:?}", event);
+                }
             }
         }
 
@@ -25,4 +27,5 @@ impl Listener for PrinterListener {
     }
 
     type TickType = PrintTick;
+    type EventType = winit::event::Event<'static, ()>;
 }

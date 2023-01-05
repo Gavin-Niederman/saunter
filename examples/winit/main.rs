@@ -23,9 +23,9 @@ fn main() {
     .unwrap_or(println!("Failed to initialize logger"));
 
     let (mut tick_loop, event_sender, ticks): (
-        Loop<PrintTick, winit::event::Event<'_, ()>>,
+        Loop<_, winit::event::Event<'_, ()>>,
         _,
-        &'static mut Arc<RwLock<Ticks<PrintTick>>>,
+        &'static mut Arc<RwLock<Ticks<_>>>,
     ) = Loop::init(
         Box::new(PrinterListener { val: 1.0 }),
         PrintTick::new(Instant::now(), 0.0),

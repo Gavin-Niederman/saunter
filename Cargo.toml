@@ -1,7 +1,9 @@
 [package]
 name = "saunter"
 authors = ["Gavin Niederman <gavinniederman@gmail.com>"]
-description = "A tick based"
+description = "A library for tick based game engines"
+repository = "https://github.com/Gavin-Niederman/saunter"
+readme = "README.md"
 version = "0.1.0"
 edition = "2021"
 

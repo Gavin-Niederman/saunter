@@ -2,6 +2,7 @@
 name = "saunter"
 authors = ["Gavin Niederman <gavinniederman@gmail.com>"]
 description = "A library for tick based game engines"
+license = "MIT"
 repository = "https://github.com/Gavin-Niederman/saunter"
 readme = "README.md"
 version = "0.1.0"

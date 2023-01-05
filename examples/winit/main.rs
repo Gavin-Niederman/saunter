@@ -11,7 +11,7 @@ use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Instant;
 
-const TPS: u32 = 66;
+const TPS: f32 = 66.0;
 
 fn main() {
     simplelog::TermLogger::init(

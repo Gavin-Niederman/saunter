@@ -10,7 +10,7 @@ use crate::tick::{Tick, Ticks};
 pub struct Loop<T: Tick, E: Send> {
     pub listener: Box<dyn listener::Listener<TickType = T, EventType = E>>,
     pub tick_length: Duration,
-    pub tps: u32,
+    pub tps: f32,
     pub events: Vec<Event<E>>,
     reciever: Receiver<Event<E>>,
 }
@@ -18,10 +18,10 @@ pub struct Loop<T: Tick, E: Send> {
 impl<'a, T: Tick, E: Send> Loop<T, E> {
     pub fn new(
         listener: Box<dyn listener::Listener<TickType = T, EventType = E>>,
-        tps: u32,
+        tps: f32,
         reciever: Receiver<Event<E>>,
     ) -> Self {
-        let tick_length = Duration::from_secs_f32(1.0 / tps as f32);
+        let tick_length = Duration::from_secs_f32(1.0 / tps);
         Loop {
             listener,
             tick_length,
@@ -34,7 +34,7 @@ impl<'a, T: Tick, E: Send> Loop<T, E> {
     pub fn init(
         listener: Box<dyn Listener<TickType = T, EventType = E>>,
         first_tick: T,
-        tps: u32,
+        tps: f32,
     ) -> (Self, Sender<Event<E>>, &'static mut Arc<RwLock<Ticks<T>>>) {
         let (event_sender, event_reciever) = mpsc::channel::<Event<E>>();
         let ticks = Box::leak(Box::new(Arc::new(RwLock::new(Ticks::new(first_tick)))));
@@ -49,7 +49,7 @@ impl<'a, T: Tick, E: Send> Loop<T, E> {
     pub fn start(&mut self, ticks: Arc<RwLock<Ticks<T>>>) {
         let mut loop_helper = spin_sleep::LoopHelper::builder()
             .report_interval_s(0.25)
-            .build_with_target_rate(self.tps as f64);
+            .build_with_target_rate(self.tps);
         loop {
             let tick_time = std::time::Instant::now();
             loop_helper.loop_start();

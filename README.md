@@ -10,6 +10,8 @@ When multiple frames happen per tick interpolation is used to make the game appe
 
 ## How to use Saunter
 
+### Reading this in it's entirety is recommended
+
 The core of saunter is the loop. The loop calls the tick function on the provided listener. Your listener should store the state of your game engine or the current scene in your engine. To create a listener implement Listener.
 
 ```rust
@@ -75,6 +77,8 @@ let (mut tick_loop, event_sender, ticks) = Loop::init(
 );
 ```
 
+Now that you have a loop all that is left is to send it events. To do this you can use the event_sender that was returned by `Loop::init()`. The event sender is a `Sender<Event<EventType>>` where EventType is the type of event you specified in your listener. **EventType is wrapped in a ``saunter::event::Event``**. This is to guarentee that you can send a close event to the loop. To send an event you can use the `send()` method on the event sender.
+
 ### Wait? What is a Ticks?
 
-The ticks type is used to store the most recent and last tick. It has a lerp funtion that returns a new tick enterpolated by the amount specified between the two ticks for use in rendering, or whatever you choose.
+The ticks type is used to store the most recent and last tick. It has a lerp funtion that returns a new tick enterpolated by the amount specified between the two ticks for use in rendering, or whatever you choose. The ticks returned by ``Loop::init()`` is not actually a ticks, it is a ``Arc<RwLock<Ticks<...>>>``, This is because it is constantly being updated by the tickloop. For this reason, **only ever have a read lock on ticks**. To help with optimization, it is best practise to immediatly drop the read lock when you are done with it.

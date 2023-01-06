@@ -1,8 +1,8 @@
 mod listener;
 mod tick;
 use listener::WinitListener;
-use tick::WinitTick;
 use saunter::event::Event;
+use tick::WinitTick;
 
 use saunter::math;
 use saunter::tick::{Tick, Ticks};

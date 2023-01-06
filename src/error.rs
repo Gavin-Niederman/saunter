@@ -1,3 +1,5 @@
+//! Holds the error enum, which holds either a [`MathError`](crate::math::MathError) or a [`TickError`](crate::tick::TickError).
+
 use std::{
     error::Error,
     fmt::{Display, Formatter},
@@ -6,6 +8,7 @@ use std::{
 use crate::math::MathError;
 use crate::tick::TickError;
 
+/// The error enum, which holds either a [`MathError`](crate::math::MathError) or a [`TickError`](crate::tick::TickError).
 #[derive(Debug)]
 pub enum SaunterError {
     TickError(TickError),

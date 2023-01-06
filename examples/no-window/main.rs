@@ -1,10 +1,19 @@
 mod listener;
 mod tick;
 
-use std::{sync::{Arc, RwLock}, time::Instant, thread};
+use std::{
+    sync::{Arc, RwLock},
+    thread,
+    time::Instant,
+};
 
 use listener::NoWindowListener;
-use saunter::{tickloop::Loop, tick::{Ticks, Tick}, event::Event, math};
+use saunter::{
+    event::Event,
+    math,
+    tick::{Tick, Ticks},
+    tickloop::Loop,
+};
 use tick::NoWindowTick;
 
 const TPS: f32 = 66.0;
@@ -17,22 +26,21 @@ fn main() {
         simplelog::ColorChoice::Auto,
     )
     .unwrap_or(println!("Failed to initialize logger"));
-    
-    let (mut tick_loop, event_sender, ticks): (
-        Loop<_, ()>,
-        _,
-        &'static mut Arc<RwLock<Ticks<_>>>,
-    ) = Loop::init(
-        Box::new(NoWindowListener { val: 1.0 }),
-        NoWindowTick::new(Instant::now(), 0.0),
-        TPS,
-    );
-    
+
+    let (mut tick_loop, event_sender, ticks): (Loop<_, ()>, _, &'static mut Arc<RwLock<Ticks<_>>>) =
+        Loop::init(
+            Box::new(NoWindowListener { val: 1.0 }),
+            NoWindowTick::new(Instant::now(), 0.0),
+            TPS,
+        );
+
     let tick_loop_tics = ticks.clone();
     thread::spawn(move || tick_loop.start(tick_loop_tics));
 
     loop {
-        event_sender.send(Event::Other(())).unwrap_or_else(|err| log::error!("{:?}", err));
+        event_sender
+            .send(Event::Other(()))
+            .unwrap_or_else(|err| log::error!("{:?}", err));
 
         let read_ticks = ticks.read().unwrap();
 

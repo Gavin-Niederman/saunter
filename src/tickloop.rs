@@ -1,3 +1,5 @@
+//! Contains the [`Loop`](crate::tickloop::Loop) struct.
+
 use log;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::{Arc, RwLock};
@@ -7,6 +9,7 @@ use crate::event::Event;
 use crate::listener::{self, Listener};
 use crate::tick::{Tick, Ticks};
 
+/// The Loop struct is the heart of saunter. It calls [`tick`](crate::listener::Listener::tick) on the [`Listener`](crate::listener::Listener) passed to it and updates the [`Ticks`](crate::tick::Ticks) struct passed to it.
 pub struct Loop<T: Tick, E: Send> {
     pub listener: Box<dyn listener::Listener<TickType = T, EventType = E>>,
     pub tick_length: Duration,
@@ -16,6 +19,8 @@ pub struct Loop<T: Tick, E: Send> {
 }
 
 impl<'a, T: Tick, E: Send> Loop<T, E> {
+    /// Creates a new Loop struct.
+    /// It is recommended to use [`init`](crate::tickloop::Loop::init) instead.
     pub fn new(
         listener: Box<dyn listener::Listener<TickType = T, EventType = E>>,
         tps: f32,
@@ -31,6 +36,7 @@ impl<'a, T: Tick, E: Send> Loop<T, E> {
         }
     }
 
+    /// Creates a new Loop struct and returns a [`Sender`](std::sync::mpsc::Sender) to send events to the loop.
     pub fn init(
         listener: Box<dyn Listener<TickType = T, EventType = E>>,
         first_tick: T,
@@ -46,6 +52,7 @@ impl<'a, T: Tick, E: Send> Loop<T, E> {
         )
     }
 
+    /// Starts the loop. This function will block the current thread. So the loop should be sent to a new thread, and start called on it there.
     pub fn start(&mut self, ticks: Arc<RwLock<Ticks<T>>>) {
         let mut loop_helper = spin_sleep::LoopHelper::builder()
             .report_interval_s(0.25)

@@ -1,6 +1,9 @@
 use std::time::Instant;
 
-use saunter::{tick::Tick, math::{MathError, self}};
+use saunter::{
+    math::{self, MathError},
+    tick::Tick,
+};
 
 #[derive(Debug, Clone)]
 pub struct NoWindowTick {
@@ -9,7 +12,7 @@ pub struct NoWindowTick {
 }
 impl Tick for NoWindowTick {
     fn lerp(&self, b: &Self, t: f32) -> Result<Self, MathError> {
-        Ok( Self {
+        Ok(Self {
             time: math::lerp_instant(&self.time, &b.time, t)?,
             val: math::lerp(self.val, b.val, t)?,
         })
@@ -17,7 +20,7 @@ impl Tick for NoWindowTick {
 
     fn get_time(&self) -> &Instant {
         &self.time
-    } 
+    }
 }
 impl NoWindowTick {
     pub fn new(time: Instant, val: f32) -> Self {

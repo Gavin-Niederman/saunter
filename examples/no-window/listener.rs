@@ -13,7 +13,7 @@ impl Listener for NoWindowListener {
     fn tick(
         &mut self,
         _dt: f32,
-        _events: &mut Vec<saunter::event::Event<Self::EventType>>,
+        _events: Vec<saunter::event::Event<Self::EventType>>,
         time: std::time::Instant,
     ) -> Result<Self::TickType, saunter::error::SaunterError> {
         self.val = 1.0 - self.val;

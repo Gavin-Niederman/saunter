@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-/// Linearly enterpolates between two floats
+/// Linearly interpolates between two floats
 #[inline]
 pub fn lerp(a: f32, b: f32, t: f32) -> Result<f32, MathError> {
     if t < 0.0 || t > 1.0 {
@@ -16,7 +16,7 @@ pub fn lerp(a: f32, b: f32, t: f32) -> Result<f32, MathError> {
     Ok(a * (1.0 - t) + b * t)
 }
 
-/// Linearly enterpolates between a vector of (f32, f32)
+/// Linearly interpolates between a vector of (f32, f32)
 #[inline]
 pub fn lerp_vec(list: Vec<(f32, f32)>, t: f32) -> Result<Vec<f32>, MathError> {
     let mut result = Vec::new();
@@ -28,7 +28,7 @@ pub fn lerp_vec(list: Vec<(f32, f32)>, t: f32) -> Result<Vec<f32>, MathError> {
     Ok(result)
 }
 
-/// Linearly enterpolates between two instants
+/// Linearly interpolates between two instants
 #[inline]
 pub fn lerp_instant(a: &Instant, b: &Instant, t: f32) -> Result<Instant, MathError> {
     let b = b.duration_since(a.clone());

@@ -1,5 +1,3 @@
-#![feature(associated_type_defaults)]
-
 //! The core of saunter is the [`Loop`](crate::tickloop::Loop). The [`Loop`](crate::tickloop::Loop) calls the [`tick()`](crate::listener::Listener::tick) function on the provided listener. Your listener should store the state of your game engine or the current scene in your engine. To create a listener implement [`Listener`](crate::listener::Listener).
 //!
 //! ```rust
@@ -31,13 +29,13 @@
 //!
 //! ```rust
 //! struct ExampleTick {
-//!     // Ticks store the time they were made so that they can be enterpolated
+//!     // Ticks store the time they were made so that they can be interpolated
 //!     pub time: Instant,
 //!
 //!     pub val: f32,
 //! }
 //! impl Tick for ExampleTick {
-//!     // This is called by ticks when b is the most recent tick and self is the last to enterpolate between the two
+//!     // This is called by ticks when b is the most recent tick and self is the last to interpolate between the two
 //!     fn lerp(&self, b: &Self, t: f32) -> Result<Self, MathError> {
 //!         Ok( Self {
 //!             // Saunter provides lerp functions.
@@ -69,7 +67,7 @@
 //!
 //! ### Wait? What is a Ticks?
 //!
-//! The [`Ticks`](crate::tick::Ticks) type is used to store the most recent and last tick. It has a lerp funtion that returns a new tick enterpolated by the amount specified between the two ticks for use in rendering, or whatever you choose. The ticks returned by [`Loop::init()`](crate::tickloop::Loop::init) is not actually a ticks, it is a ``Arc<RwLock<Ticks<...>>>``, This is because it is constantly being updated by the tickloop. For this reason, **only ever have a read lock on ticks**. To help with optimization, it is best practise to immediatly drop the read lock when you are done with it.
+//! The [`Ticks`](crate::tick::Ticks) type is used to store the most recent and last tick. It has a lerp funtion that returns a new tick interpolated by the amount specified between the two ticks for use in rendering, or whatever you choose. The ticks returned by [`Loop::init()`](crate::tickloop::Loop::init) is not actually a ticks, it is a ``Arc<RwLock<Ticks<...>>>``, This is because it is constantly being updated by the tickloop. For this reason, **only ever have a read lock on ticks**. To help with optimization, it is best practise to immediatly drop the read lock when you are done with it.
 
 pub mod error;
 pub mod event;

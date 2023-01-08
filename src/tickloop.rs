@@ -10,7 +10,7 @@ use crate::listener::{self, Listener};
 use crate::tick::{Tick, Ticks};
 
 /// The Loop struct is the heart of saunter. It calls [`tick`](crate::listener::Listener::tick) on the [`Listener`](crate::listener::Listener) passed to it and updates the [`Ticks`](crate::tick::Ticks) struct passed to it.
-pub struct Loop<T: Tick, E: Send> {
+pub struct Loop<T: Tick, E: Send + Clone> {
     pub listener: Box<dyn listener::Listener<TickType = T, EventType = E>>,
     pub tick_length: Duration,
     pub tps: f32,
@@ -18,7 +18,7 @@ pub struct Loop<T: Tick, E: Send> {
     reciever: Receiver<Event<E>>,
 }
 
-impl<'a, T: Tick, E: Send> Loop<T, E> {
+impl<'a, T: Tick, E: Send + Clone> Loop<T, E> {
     /// Creates a new Loop struct.
     /// It is recommended to use [`init`](crate::tickloop::Loop::init) instead.
     pub fn new(
@@ -69,7 +69,7 @@ impl<'a, T: Tick, E: Send> Loop<T, E> {
             }
             if let Ok(tick) =
                 self.listener
-                    .tick(self.tick_length.as_secs_f32(), &mut self.events, tick_time)
+                    .tick(self.tick_length.as_secs_f32(), self.events.clone(), tick_time)
             {
                 let mut tick_wlock = ticks.write().unwrap();
                 log::debug!("lock aquired {:?}", std::time::Instant::now());

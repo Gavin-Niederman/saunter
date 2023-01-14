@@ -4,7 +4,7 @@ use crate::{error::SaunterError, math::MathError};
 use std::{
     error::Error,
     fmt::{self, Debug, Display, Formatter},
-    time::Instant,
+    time::Instant, mem,
 };
 
 // A snapshot of the state of the game engine, or current scene at the time of creation.
@@ -45,8 +45,7 @@ impl<T: Tick> Ticks<T> {
 
     /// Drops last tick and replaces it with new tick, and then replaces new tick with the new new tick.
     pub fn update(&mut self, new_tick: T) {
-        self.last_tick = Some(self.new_tick.clone());
-        self.new_tick = new_tick;
+        self.last_tick = Some(mem::replace(&mut self.new_tick, new_tick));
     }
 }
 

@@ -8,24 +8,20 @@ use std::{
 
 /// Linearly interpolates between two floats
 #[inline]
-pub fn lerp(a: f32, b: f32, t: f32) -> Result<f32, MathError> {
-    if t < 0.0 || t > 1.0 {
-        return Err(MathError::TOutOfRange);
-    }
-
-    Ok(a * (1.0 - t) + b * t)
+pub fn lerp(a: f32, b: f32, t: f32) -> f32 {
+    a * (1.0 - t) + b * t
 }
 
 /// Linearly interpolates between a vector of (f32, f32)
 #[inline]
-pub fn lerp_vec(list: Vec<(f32, f32)>, t: f32) -> Result<Vec<f32>, MathError> {
+pub fn lerp_vec(list: Vec<(f32, f32)>, t: f32) -> Vec<f32> {
     let mut result = Vec::new();
 
     for (a, b) in list {
-        result.push(lerp(a, b, t)?);
+        result.push(lerp(a, b, t));
     }
 
-    Ok(result)
+    result
 }
 
 /// Linearly interpolates between two instants
@@ -71,7 +67,6 @@ pub fn min(a: f32, b: f32) -> f32 {
 /// The error enum for math functions
 #[derive(Debug)]
 pub enum MathError {
-    TOutOfRange,
     InstantOutOfRange,
 }
 impl Error for MathError {}
@@ -79,7 +74,6 @@ impl Error for MathError {}
 impl Display for MathError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            MathError::TOutOfRange => write!(f, "t must be between 0 and 1"),
             MathError::InstantOutOfRange => write!(f, "Instant is out of range"),
         }
     }

@@ -6,23 +6,25 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use crate::event::Event;
-use crate::listener::{self, Listener};
+use crate::listener::{self};
 use crate::tick::{Tick, Ticks};
 
 /// The Loop struct is the heart of saunter. It calls [`tick`](crate::listener::Listener::tick) on the [`Listener`](crate::listener::Listener) passed to it and updates the [`Ticks`](crate::tick::Ticks) struct passed to it.
-pub struct Loop<T: Tick, E: Send + Clone> {
-    pub listener: Box<dyn listener::Listener<TickType = T, EventType = E>>,
+pub struct Loop<T: Tick, E: Send + Clone, L: AsMut<dyn listener::Listener<TickType = T, EventType = E>>> {
+    pub listener: L,
     pub tick_length: Duration,
     pub tps: f32,
     pub events: Vec<Event<E>>,
     reciever: Receiver<Event<E>>,
+
+    phantom: std::marker::PhantomData<T>,
 }
 
-impl<'a, T: Tick, E: Send + Clone> Loop<T, E> {
+impl<'a, T: Tick, E: Send + Clone, L: AsMut<dyn listener::Listener<TickType = T, EventType = E>>> Loop<T, E, L> {
     /// Creates a new Loop struct.
     /// It is recommended to use [`init`](crate::tickloop::Loop::init) instead.
     pub fn new(
-        listener: Box<dyn listener::Listener<TickType = T, EventType = E>>,
+        listener: L,
         tps: f32,
         reciever: Receiver<Event<E>>,
     ) -> Self {
@@ -33,12 +35,13 @@ impl<'a, T: Tick, E: Send + Clone> Loop<T, E> {
             tps,
             events: Vec::new(),
             reciever,
+            phantom: std::marker::PhantomData,
         }
     }
 
     /// Creates a new Loop struct and returns a [`Sender`](std::sync::mpsc::Sender) to send events to the loop.
     pub fn init(
-        listener: Box<dyn Listener<TickType = T, EventType = E>>,
+        listener: L,
         first_tick: T,
         tps: f32,
     ) -> (Self, Sender<Event<E>>, &'static mut Arc<RwLock<Ticks<T>>>) {
@@ -68,7 +71,7 @@ impl<'a, T: Tick, E: Send + Clone> Loop<T, E> {
                 }
             }
             if let Ok(tick) =
-                self.listener
+                self.listener.as_mut()
                     .tick(self.tick_length.as_secs_f32(), self.events.clone(), tick_time)
             {
                 let mut tick_wlock = ticks.write().unwrap();

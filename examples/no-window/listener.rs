@@ -6,16 +6,16 @@ pub struct NoWindowListener {
     pub val: f32,
 }
 impl Listener for NoWindowListener {
-    type TickType = NoWindowTick;
+    type Tick = NoWindowTick;
 
-    type EventType = ();
+    type Event = ();
 
     fn tick(
         &mut self,
         _dt: f32,
-        _events: Vec<saunter::event::Event<Self::EventType>>,
+        _events: Vec<saunter::event::Event<Self::Event>>,
         time: std::time::Instant,
-    ) -> Result<Self::TickType, saunter::error::SaunterError> {
+    ) -> Result<Self::Tick, saunter::error::SaunterError> {
         self.val = 1.0 - self.val;
         log::info!("{}", self.val);
 

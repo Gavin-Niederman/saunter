@@ -26,6 +26,6 @@ impl Listener for WinitListener {
         Ok(WinitTick::new(time, self.val))
     }
 
-    type TickType = WinitTick;
-    type EventType = winit::event::Event<'static, ()>;
+    type Tick = WinitTick;
+    type Event = winit::event::Event<'static, ()>;
 }

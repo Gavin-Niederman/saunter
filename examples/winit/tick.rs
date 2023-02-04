@@ -10,7 +10,7 @@ impl saunter::tick::Tick for WinitTick {
     fn lerp(&self, b: &Self, t: f32) -> Result<Self, MathError> {
         Ok(WinitTick {
             time: math::lerp_instant(&self.time, &b.time, t)?,
-            val: math::lerp(self.val, b.val, t)?,
+            val: math::lerp(self.val, b.val, t),
         })
     }
 

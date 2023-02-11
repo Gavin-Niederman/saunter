@@ -11,10 +11,10 @@ pub struct NoWindowTick {
     pub val: f32,
 }
 impl Tick for NoWindowTick {
-    fn lerp(&self, b: &Self, t: f32) -> Result<Self, MathError> {
+    fn lerp(a: &Self, b: &Self, t: f32) -> Result<Self, MathError> {
         Ok(Self {
-            time: math::lerp_instant(&self.time, &b.time, t)?,
-            val: math::lerp(self.val, b.val, t),
+            time: math::lerp_instant(&a.time, &b.time, t)?,
+            val: math::lerp(a.val, b.val, t),
         })
     }
 

@@ -7,7 +7,7 @@ struct TestTick {
 }
 
 impl Tick for TestTick {
-    fn lerp(&self, _b: &Self, _t: f32) -> Result<Self, MathError> {
+    fn lerp(_a: &Self, _b: &Self, _t: f32) -> Result<Self, MathError> {
         unimplemented!()
     }
 

@@ -9,8 +9,12 @@ use std::{
 
 // A snapshot of the state of the game engine, or current scene at the time of creation.
 pub trait Tick: Clone + Debug {
+    /// Lerps between 
+    fn lerp(a: &Self, b: &Self, t: f32) -> Result<Self, MathError>;
     /// Lerps between self and b by t. t should be between 0 and 1.
-    fn lerp(&self, b: &Self, t: f32) -> Result<Self, MathError>;
+    fn lerp_self(&self, b: &Self, t: f32) -> Result<Self, MathError> {
+        Self::lerp(&self, b, t)
+    }
     /// Returns the time that the tick was created.
     fn get_time(&self) -> &Instant;
 }
@@ -34,7 +38,7 @@ impl<T: Tick> Ticks<T> {
     /// Lerps between the last tick and the new tick by t. t should be between 0 and 1.
     pub fn lerp(&self, t: f32) -> Result<T, SaunterError> {
         if let Some(last) = &self.last_tick {
-            match self.new_tick.lerp(last, t) {
+            match self.new_tick.lerp_self(last, t) {
                 Ok(val) => Ok(val),
                 Err(err) => Err(SaunterError::MathError(err)),
             }

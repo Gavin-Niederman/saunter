@@ -57,6 +57,7 @@ impl<T: Tick> Ticks<T> {
 #[derive(Debug)]
 pub enum TickError {
     TooFewTicks,
+    CouldNotCreateTick,
 }
 impl Error for TickError {}
 
@@ -64,6 +65,7 @@ impl Display for TickError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             TickError::TooFewTicks => write!(f, "Not enough ticks to lerp"),
+            TickError::CouldNotCreateTick => write!(f, "Could not create a tick")
         }
     }
 }

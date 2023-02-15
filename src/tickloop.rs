@@ -57,16 +57,17 @@ impl<'a, T: Tick, E: Send + Clone> Loop<T, E> {
         let mut loop_helper = spin_sleep::LoopHelper::builder()
             .report_interval_s(0.25)
             .build_with_target_rate(self.tps);
-        loop {
+        'a: loop {
             let tick_time = std::time::Instant::now();
             loop_helper.loop_start();
 
             self.events = self.reciever.try_iter().collect();
             for event in self.events.iter() {
                 if let Event::Close = event {
-                    break;
+                    break 'a;
                 }
             }
+            
             if let Ok(tick) =
                 self.listener
                     .tick(self.tick_length.as_secs_f32(), self.events.clone(), tick_time)

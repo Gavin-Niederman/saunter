@@ -17,7 +17,7 @@ impl Listener for NoWindowListener {
         time: std::time::Instant,
     ) -> Result<Self::Tick, saunter::error::SaunterError> {
         self.val = 1.0 - self.val;
-        log::info!("{}", self.val);
+        log::info!("ticked {}", self.val);
 
         Ok(NoWindowTick { val: self.val, time })
     }

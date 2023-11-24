@@ -1,13 +1,13 @@
+use saunter::tick::{Snapshot, Snapshots};
 use std::time::Instant;
-use saunter::{math::MathError, tick::{Ticks, Tick}};
 
 #[derive(Copy, Clone, Debug)]
 struct TestTick {
     tick: u8,
 }
 
-impl Tick for TestTick {
-    fn lerp(_a: &Self, _b: &Self, _t: f32) -> Result<Self, MathError> {
+impl Snapshot for TestTick {
+    fn lerp(_a: &Self, _b: &Self, _t: f32) -> Self {
         unimplemented!()
     }
 
@@ -18,7 +18,7 @@ impl Tick for TestTick {
 
 #[test]
 fn test_ticks_update() {
-    let mut ticks = Ticks {
+    let mut ticks = Snapshots {
         last_tick: None,
         new_tick: TestTick { tick: 0 },
     };

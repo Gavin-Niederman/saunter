@@ -4,8 +4,7 @@ use listener::WinitListener;
 use saunter::event::Event;
 use tick::WinitTick;
 
-use saunter::math;
-use saunter::tick::{Tick, Ticks};
+use saunter::tick::{Snapshot, Snapshots};
 use saunter::tickloop::Loop;
 use std::sync::{Arc, RwLock};
 use std::thread;
@@ -25,7 +24,7 @@ fn main() {
     let (mut tick_loop, event_sender, ticks): (
         Loop<_, winit::event::Event<'_, ()>>,
         _,
-        &'static mut Arc<RwLock<Ticks<_>>>,
+        &'static mut Arc<RwLock<Snapshots<_>>>,
     ) = Loop::init(
         Box::new(WinitListener { val: 1.0 }),
         WinitTick::new(Instant::now(), 0.0),
@@ -60,10 +59,8 @@ fn main() {
         let read_ticks = ticks.read().unwrap();
 
         if let Some(last) = &read_ticks.last_tick {
-            let mapped_t = math::max(
-                (last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0, //subtract 1 to get the previous tick
-                0.0,
-            );
+            let mapped_t = ((last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0).max(0.0); //subtract 1 to get the previous tick
+            
             if let Ok(lerped) = read_ticks.lerp(mapped_t) {
                 let _lerped = lerped;
             }

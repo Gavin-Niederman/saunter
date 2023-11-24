@@ -2,7 +2,7 @@
 //!
 //! A library for tick based game engines.
 //!
-//! ## How to use Saunter
+//! ## How to interpolationuse Saunter
 //!
 //! The core of saunter is the loop. The loop calls the tick function on the provided listener. 
 //! Your listener should store the state of your game engine or the current scene in your engine.
@@ -87,19 +87,6 @@
 pub mod error;
 pub mod event;
 pub mod listener;
-pub mod math;
 pub mod tick;
 pub mod tickloop;
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn lerp() {
-        assert_eq!(math::lerp(0.0, 100.0, 0.75), 75.0);
-
-        let vals = vec![(0.0, 1.0), (0.5, 1.0), (0.0, 2.0)];
-        assert_eq!(math::lerp_vec(vals, 0.5), vec![0.5, 0.75, 1.0]);
-    }
-}
+pub mod interpolate;

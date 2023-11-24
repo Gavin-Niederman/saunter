@@ -1,21 +1,19 @@
 use std::time::Instant;
 
-use saunter::{
-    math::{self, MathError},
-    tick::Tick,
-};
+use saunter::interpolate::{linear, Interpolate};
+use saunter::tick::Snapshot;
 
 #[derive(Debug, Clone)]
 pub struct NoWindowTick {
     pub time: Instant,
     pub val: f32,
 }
-impl Tick for NoWindowTick {
-    fn lerp(a: &Self, b: &Self, t: f32) -> Result<Self, MathError> {
-        Ok(Self {
-            time: math::lerp_instant(&a.time, &b.time, t)?,
-            val: math::lerp(a.val, b.val, t),
-        })
+impl Snapshot for NoWindowTick {
+    fn lerp(a: &Self, b: &Self, t: f32) -> Self {
+        Self {
+            time: Instant::interpolate(&a.time, &b.time, t, linear),
+            val: f32::interpolate(&a.val, &b.val, t, linear),
+        }
     }
 
     fn get_time(&self) -> &Instant {

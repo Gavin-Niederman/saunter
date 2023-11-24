@@ -7,10 +7,10 @@ use std::time::Duration;
 
 use crate::event::Event;
 use crate::listener::{self};
-use crate::tick::{Tick, Ticks};
+use crate::tick::{Snapshot, Snapshots};
 
 /// The Loop struct is the heart of saunter. It calls [`tick`](crate::listener::Listener::tick) on the [`Listener`](crate::listener::Listener) passed to it and updates the [`Ticks`](crate::tick::Ticks) struct passed to it.
-pub struct Loop<T: Tick, E: Send + Clone>{
+pub struct Loop<T: Snapshot, E: Send + Clone>{
     pub listener: Box<dyn listener::Listener<Tick = T, Event = E>>,
     pub tick_length: Duration,
     pub tps: f32,
@@ -18,7 +18,7 @@ pub struct Loop<T: Tick, E: Send + Clone>{
     reciever: Receiver<Event<E>>,
 }
 
-impl<'a, T: Tick, E: Send + Clone> Loop<T, E> {
+impl<'a, T: Snapshot, E: Send + Clone> Loop<T, E> {
     /// Creates a new Loop struct.
     /// It is recommended to use [`init`](crate::tickloop::Loop::init) instead.
     pub fn new(
@@ -41,9 +41,9 @@ impl<'a, T: Tick, E: Send + Clone> Loop<T, E> {
         listener: Box<dyn listener::Listener<Tick = T, Event = E>>,
         first_tick: T,
         tps: f32,
-    ) -> (Self, Sender<Event<E>>, &'static mut Arc<RwLock<Ticks<T>>>) {
+    ) -> (Self, Sender<Event<E>>, &'static mut Arc<RwLock<Snapshots<T>>>) {
         let (event_sender, event_reciever) = mpsc::channel::<Event<E>>();
-        let ticks = Box::leak(Box::new(Arc::new(RwLock::new(Ticks::new(first_tick)))));
+        let ticks = Box::leak(Box::new(Arc::new(RwLock::new(Snapshots::new(first_tick)))));
 
         (
             Self::new(listener, tps, event_reciever),
@@ -53,7 +53,7 @@ impl<'a, T: Tick, E: Send + Clone> Loop<T, E> {
     }
 
     /// Starts the loop. This function will block the current thread. So the loop should be sent to a new thread, and start called on it there.
-    pub fn start(&mut self, ticks: Arc<RwLock<Ticks<T>>>) {
+    pub fn start(&mut self, ticks: Arc<RwLock<Snapshots<T>>>) {
         let mut loop_helper = spin_sleep::LoopHelper::builder()
             .report_interval_s(0.25)
             .build_with_target_rate(self.tps);

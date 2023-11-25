@@ -90,3 +90,8 @@ pub mod listener;
 pub mod tick;
 pub mod tickloop;
 pub mod interpolate;
+
+#[cfg(feature = "derive")]
+pub mod derive {
+    pub use saunter_derive::*;
+}

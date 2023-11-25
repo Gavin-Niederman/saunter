@@ -22,7 +22,7 @@ fn main() {
     .unwrap_or(println!("Failed to initialize logger"));
 
     let (mut tick_loop, event_sender, ticks): (
-        Loop<_, winit::event::Event<'_, ()>>,
+        Loop<_, winit::event::Event<()>>,
         _,
         &'static mut Arc<RwLock<Snapshots<_>>>,
     ) = Loop::init(
@@ -34,36 +34,34 @@ fn main() {
     let tick_loop_tics = ticks.clone();
     thread::spawn(move || tick_loop.start(tick_loop_tics));
 
-    let event_loop = winit::event_loop::EventLoop::new();
+    let event_loop = winit::event_loop::EventLoop::new().unwrap();
     let _window = winit::window::WindowBuilder::new()
         .with_min_inner_size(winit::dpi::LogicalSize::new(10, 10))
         .build(&event_loop)
         .unwrap();
 
-    event_loop.run(move |event, _, control_flow| {
-        control_flow.set_poll();
-        if let winit::event::Event::WindowEvent {
-            event: winit::event::WindowEvent::CloseRequested,
-            ..
-        } = event
-        {
-            control_flow.set_exit();
+    event_loop.run(move |event, elwt| {
+        match event {
+            winit::event::Event::WindowEvent {
+                event: winit::event::WindowEvent::CloseRequested,
+                ..
+            } => elwt.exit(),
+            winit::event::Event::AboutToWait => elwt.set_control_flow(winit::event_loop::ControlFlow::Poll),
+            _ => {}
         }
 
         event_sender
-            .send(Event::Other(event.to_static().unwrap_or(
-                winit::event::Event::NewEvents(winit::event::StartCause::Poll),
-            )))
+            .send(Event::Other(event))
             .unwrap_or_else(|err| log::error!("{:?}", err));
 
         let read_ticks = ticks.read().unwrap();
 
         if let Some(last) = &read_ticks.last_tick {
             let mapped_t = ((last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0).max(0.0); //subtract 1 to get the previous tick
-            
+
             if let Ok(lerped) = read_ticks.lerp(mapped_t) {
                 let _lerped = lerped;
             }
         }
-    })
+    }).unwrap();
 }

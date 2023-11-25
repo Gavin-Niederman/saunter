@@ -11,13 +11,12 @@ pub fn derive_interpolate(input: TokenStream) -> TokenStream {
 
     let ident = &ast.ident;
 
-    let field_idents: Vec<_> = data.fields
+    let field_idents: Vec<_> = data
+        .fields
         .iter()
         .cloned()
         .map(|f| (f.ident.unwrap(), f.ty))
-        .map(|(ident, ty)| 
-            quote! { #ident: <#ty as saunter::interpolate::Interpolate>::interpolate(&a.#ident, &b.#ident, t, &f) }
-        )
+        .map(|(ident, ty)| quote! { #ident: <#ty as saunter::interpolate::Interpolate>::interpolate(&a.#ident, &b.#ident, t, &f) } )
         .collect();
 
     quote! {

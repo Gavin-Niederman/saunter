@@ -49,9 +49,14 @@ impl Interpolate for Instant {
 
 impl<I: Interpolate> Interpolate for Vec<I> {
     fn interpolate(start: &Self, end: &Self, t: f32, interpolation: impl Fn(f32) -> f32) -> Self
-        where
-            Self: Sized {
-        start.iter().zip(end.iter()).map(|(a, b)| I::interpolate(a, b, t, &interpolation)).collect()
+    where
+        Self: Sized,
+    {
+        start
+            .iter()
+            .zip(end.iter())
+            .map(|(a, b)| I::interpolate(a, b, t, &interpolation))
+            .collect()
     }
 }
 

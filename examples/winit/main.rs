@@ -26,13 +26,9 @@ fn main() {
         _,
         &'static mut Arc<RwLock<Snapshots<_>>>,
     ) = Loop::init(
-        move |
-            _dt,
-            events: Vec<saunter::event::Event<winit::event::Event<()>>>,
-            time,
-        |  {
+        move |_dt, events: Vec<saunter::event::Event<winit::event::Event<()>>>, time| {
             val = 1.0 - val;
-    
+
             for event in events {
                 if let saunter::event::Event::Other(event) = event {
                     if let winit::event::Event::WindowEvent { event, .. } = event {
@@ -40,7 +36,7 @@ fn main() {
                     }
                 }
             }
-    
+
             Ok(WinitTick::new(time, val))
         },
         WinitTick::new(Instant::now(), 0.0),

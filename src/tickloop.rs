@@ -85,7 +85,6 @@ impl<'a, T: Snapshot, E: Send + Clone> Loop<T, E> {
             }
             log::debug!("lock dropped {:?}", std::time::Instant::now());
 
-
             let elapsed = tick_time.elapsed();
             if elapsed < self.tick_length {
                 let mut sleep_dur = self.tick_length - elapsed;

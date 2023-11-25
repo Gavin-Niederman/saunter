@@ -31,18 +31,11 @@ fn main() {
         _,
         &'static mut Arc<RwLock<Snapshots<_>>>,
     ) = Loop::init(
-        move |
-            _dt,
-            _events: Vec<saunter::event::Event<()>>,
-            time,
-        | {
+        move |_dt, _events: Vec<saunter::event::Event<()>>, time| {
             val = 1.0 - val;
             log::info!("ticked {}", val);
-    
-            Ok(NoWindowTick {
-                val,
-                time,
-            })
+
+            Ok(NoWindowTick { val, time })
         },
         NoWindowTick::new(Instant::now(), 0.0),
         TPS,

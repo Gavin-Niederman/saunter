@@ -2,7 +2,7 @@ mod tick;
 use saunter::event::Event;
 use tick::WinitTick;
 
-use saunter::tick::{Snapshot, Snapshots};
+use saunter::snapshot::{Snapshot, Snapshots};
 use saunter::tickloop::Loop;
 use std::sync::{Arc, RwLock};
 use std::thread;
@@ -75,7 +75,9 @@ fn main() {
                 let mapped_t =
                     ((last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0).max(0.0); //subtract 1 to get the previous tick
 
-                if let Ok(lerped) = read_ticks.lerp(mapped_t) {
+                if let Ok(lerped) =
+                    read_ticks.interpolate_ticks(mapped_t, saunter::interpolate::linear)
+                {
                     let _lerped = lerped;
                 }
             }

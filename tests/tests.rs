@@ -1,16 +1,13 @@
-use saunter::tick::{Snapshot, Snapshots};
+use saunter::derive::Interpolate;
+use saunter::snapshot::{Snapshot, Snapshots};
 use std::time::Instant;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Interpolate)]
 struct TestTick {
     tick: u8,
 }
 
 impl Snapshot for TestTick {
-    fn lerp(_a: &Self, _b: &Self, _t: f32) -> Self {
-        unimplemented!()
-    }
-
     fn get_time(&self) -> &Instant {
         unimplemented!()
     }

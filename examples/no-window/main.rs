@@ -8,7 +8,7 @@ use std::{
 
 use saunter::{
     event::Event,
-    tick::{Snapshot, Snapshots},
+    snapshot::{Snapshot, Snapshots},
     tickloop::Loop,
 };
 use tick::NoWindowTick;
@@ -53,7 +53,8 @@ fn main() {
 
         if let Some(last) = &read_ticks.last_tick {
             let mapped_t = ((last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0).max(0.0); //subtract 1 to get the previous tick
-            if let Ok(lerped) = read_ticks.lerp(mapped_t) {
+            if let Ok(lerped) = read_ticks.interpolate_ticks(mapped_t, saunter::interpolate::linear)
+            {
                 log::info!("{}", lerped.val);
             }
         }

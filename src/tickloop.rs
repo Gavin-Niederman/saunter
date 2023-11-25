@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 
 use crate::error::SaunterError;
 use crate::event::Event;
-use crate::tick::{Snapshot, Snapshots};
+use crate::snapshot::{Snapshot, Snapshots};
 type Listener<T, E> = dyn FnMut(f32, Vec<Event<E>>, Instant) -> Result<T, SaunterError> + Send;
 
 /// The Loop struct is the heart of saunter. It calls [`tick`](crate::listener::Listener::tick) on the [`Listener`](crate::listener::Listener) passed to it and updates the [`Ticks`](crate::tick::Ticks) struct passed to it.

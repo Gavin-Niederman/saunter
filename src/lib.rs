@@ -87,7 +87,7 @@
 pub mod error;
 pub mod event;
 pub mod interpolate;
-pub mod tick;
+pub mod snapshot;
 pub mod tickloop;
 
 #[cfg(feature = "derive")]

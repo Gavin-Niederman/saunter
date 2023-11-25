@@ -1,6 +1,6 @@
 //! Contains the [`Tick`](crate::tick::Tick) trait and [`Ticks`](crate::tick::Ticks) struct.
 
-use crate::error::SaunterError;
+use crate::{error::SaunterError, interpolate::Interpolate};
 use std::{
     error::Error,
     fmt::{self, Debug, Display, Formatter},
@@ -9,13 +9,7 @@ use std::{
 };
 
 // A snapshot of the state of the game engine, or current scene at the time of creation.
-pub trait Snapshot: Clone + Debug {
-    /// Lerps between
-    fn lerp(a: &Self, b: &Self, t: f32) -> Self;
-    /// Lerps between self and b by t. t should be between 0 and 1.
-    fn lerp_self(&self, b: &Self, t: f32) -> Self {
-        Self::lerp(&self, b, t)
-    }
+pub trait Snapshot: Interpolate + Clone + Debug {
     /// Returns the time that the tick was created.
     fn get_time(&self) -> &Instant;
 }
@@ -36,10 +30,19 @@ impl<T: Snapshot> Snapshots<T> {
         }
     }
 
-    /// Lerps between the last tick and the new tick by t. t should be between 0 and 1.
-    pub fn lerp(&self, t: f32) -> Result<T, SaunterError> {
+    /// Interpolates between the last tick and the new tick.
+    pub fn interpolate_ticks(
+        &self,
+        t: f32,
+        interpolation: impl Fn(f32) -> f32,
+    ) -> Result<T, SaunterError> {
         if let Some(last) = &self.last_tick {
-            Ok(self.new_tick.lerp_self(last, t))
+            Ok(<T as Interpolate>::interpolate(
+                last,
+                &self.new_tick,
+                t,
+                interpolation,
+            ))
         } else {
             Err(SaunterError::TickError(TickError::TooFewTicks))
         }

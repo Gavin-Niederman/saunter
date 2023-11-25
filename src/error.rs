@@ -5,7 +5,7 @@ use std::{
     fmt::{Display, Formatter},
 };
 
-use crate::tick::TickError;
+use crate::snapshot::TickError;
 
 /// The error enum, which holds either a [`MathError`](crate::math::MathError) or a [`TickError`](crate::tick::TickError).
 #[derive(Debug)]

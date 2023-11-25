@@ -13,6 +13,7 @@ type Listener<T, E> =
 pub enum LoopState {
     Running,
     Stopped,
+    Paused,
 }
 
 pub struct LoopControl {
@@ -23,6 +24,16 @@ impl LoopControl {
     pub fn stop(&mut self) {
         let mut state = self.state.lock().unwrap();
         *state = LoopState::Stopped;
+    }
+
+    pub fn pause(&mut self) {
+        let mut state = self.state.lock().unwrap();
+        *state = LoopState::Paused;
+    }
+
+    pub fn resume(&mut self) {
+        let mut state = self.state.lock().unwrap();
+        *state = LoopState::Running;
     }
 }
 
@@ -96,6 +107,10 @@ impl<'a, T: Snapshot, E: Send + Clone> Loop<T, E> {
 
             match *self.state.lock().unwrap() {
                 LoopState::Stopped => break 'a,
+                LoopState::Paused => {
+                    spin_sleep::sleep(self.tick_length);
+                    continue 'a;
+                }
                 LoopState::Running => {}
             }
 

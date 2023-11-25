@@ -18,7 +18,7 @@ pub fn lerp(start: f32, end: f32, t: f32) -> f32 {
 }
 
 macro_rules! impl_interpolate {
-    ($($t:ty)*) => {
+    ($($t:ty),*) => {
         $(
             impl Interpolate for $t {
                 fn interpolate(start: &Self, end: &Self, t: f32, interpolation: impl Fn(f32) -> f32) -> Self {
@@ -32,17 +32,26 @@ macro_rules! impl_interpolate {
     };
 }
 
-impl_interpolate!(u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize f32 f64);
+impl_interpolate!(u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, f32, f64);
 
 impl Interpolate for Instant {
     fn interpolate(start: &Self, end: &Self, t: f32, interpolation: impl Fn(f32) -> f32) -> Self
-        where
-            Self: Sized {
+    where
+        Self: Sized,
+    {
         let start = start.elapsed().as_secs_f32();
         let end = end.elapsed().as_secs_f32();
         let t = interpolation(t);
         let secs = lerp(start, end, t);
         Instant::now() - std::time::Duration::from_secs_f32(secs)
+    }
+}
+
+impl<I: Interpolate> Interpolate for Vec<I> {
+    fn interpolate(start: &Self, end: &Self, t: f32, interpolation: impl Fn(f32) -> f32) -> Self
+        where
+            Self: Sized {
+        start.iter().zip(end.iter()).map(|(a, b)| I::interpolate(a, b, t, &interpolation)).collect()
     }
 }
 

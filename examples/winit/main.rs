@@ -1,6 +1,4 @@
-mod listener;
 mod tick;
-use listener::WinitListener;
 use saunter::event::Event;
 use tick::WinitTick;
 
@@ -21,12 +19,30 @@ fn main() {
     )
     .unwrap_or(println!("Failed to initialize logger"));
 
+    let mut val = 1.0;
+
     let (mut tick_loop, event_sender, ticks): (
         Loop<_, winit::event::Event<()>>,
         _,
         &'static mut Arc<RwLock<Snapshots<_>>>,
     ) = Loop::init(
-        Box::new(WinitListener { val: 1.0 }),
+        move |
+            _dt,
+            events: Vec<saunter::event::Event<winit::event::Event<()>>>,
+            time,
+        |  {
+            val = 1.0 - val;
+    
+            for event in events {
+                if let saunter::event::Event::Other(event) = event {
+                    if let winit::event::Event::WindowEvent { event, .. } = event {
+                        log::info!("Tick {:?}", event);
+                    }
+                }
+            }
+    
+            Ok(WinitTick::new(time, val))
+        },
         WinitTick::new(Instant::now(), 0.0),
         TPS,
     );
@@ -40,28 +56,33 @@ fn main() {
         .build(&event_loop)
         .unwrap();
 
-    event_loop.run(move |event, elwt| {
-        match event {
-            winit::event::Event::WindowEvent {
-                event: winit::event::WindowEvent::CloseRequested,
-                ..
-            } => elwt.exit(),
-            winit::event::Event::AboutToWait => elwt.set_control_flow(winit::event_loop::ControlFlow::Poll),
-            _ => {}
-        }
-
-        event_sender
-            .send(Event::Other(event))
-            .unwrap_or_else(|err| log::error!("{:?}", err));
-
-        let read_ticks = ticks.read().unwrap();
-
-        if let Some(last) = &read_ticks.last_tick {
-            let mapped_t = ((last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0).max(0.0); //subtract 1 to get the previous tick
-
-            if let Ok(lerped) = read_ticks.lerp(mapped_t) {
-                let _lerped = lerped;
+    event_loop
+        .run(move |event, elwt| {
+            match event {
+                winit::event::Event::WindowEvent {
+                    event: winit::event::WindowEvent::CloseRequested,
+                    ..
+                } => elwt.exit(),
+                winit::event::Event::AboutToWait => {
+                    elwt.set_control_flow(winit::event_loop::ControlFlow::Poll)
+                }
+                _ => {}
             }
-        }
-    }).unwrap();
+
+            event_sender
+                .send(Event::Other(event))
+                .unwrap_or_else(|err| log::error!("{:?}", err));
+
+            let read_ticks = ticks.read().unwrap();
+
+            if let Some(last) = &read_ticks.last_tick {
+                let mapped_t =
+                    ((last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0).max(0.0); //subtract 1 to get the previous tick
+
+                if let Ok(lerped) = read_ticks.lerp(mapped_t) {
+                    let _lerped = lerped;
+                }
+            }
+        })
+        .unwrap();
 }

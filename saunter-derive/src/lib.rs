@@ -28,5 +28,6 @@ pub fn derive_interpolate(input: TokenStream) -> TokenStream {
                 }
             }
         }
-    }.into()
+    }
+    .into()
 }

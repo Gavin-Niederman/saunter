@@ -1,5 +1,5 @@
+use saunter::interpolate::{linear, Interpolate};
 use std::time::Instant;
-use saunter::interpolate::{Interpolate, linear};
 
 #[derive(Clone, Debug)]
 pub struct WinitTick {

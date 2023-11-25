@@ -7,7 +7,6 @@ use std::{
 };
 
 use saunter::{
-    event::Event,
     snapshot::{Snapshot, Snapshots},
     tickloop::Loop,
 };
@@ -26,12 +25,13 @@ fn main() {
 
     let mut val = 1.0;
 
-    let (mut tick_loop, event_sender, ticks): (
+    let (mut tick_loop, event_sender, _, ticks): (
         Loop<_, ()>,
+        _,
         _,
         &'static mut Arc<RwLock<Snapshots<_>>>,
     ) = Loop::init(
-        move |_dt, _events: Vec<saunter::event::Event<()>>, time| {
+        move |_dt, _events, _ctrl, time| {
             val = 1.0 - val;
             log::info!("ticked {}", val);
 
@@ -46,7 +46,7 @@ fn main() {
 
     loop {
         event_sender
-            .send(Event::Other(()))
+            .send(())
             .unwrap_or_else(|err| log::error!("{:?}", err));
 
         let read_ticks = ticks.read().unwrap();

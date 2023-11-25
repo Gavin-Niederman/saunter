@@ -1,5 +1,4 @@
 mod tick;
-use saunter::event::Event;
 use tick::WinitTick;
 
 use saunter::snapshot::{Snapshot, Snapshots};
@@ -21,19 +20,18 @@ fn main() {
 
     let mut val = 1.0;
 
-    let (mut tick_loop, event_sender, ticks): (
+    let (mut tick_loop, _, mut ctrl, ticks): (
         Loop<_, winit::event::Event<()>>,
+        _,
         _,
         &'static mut Arc<RwLock<Snapshots<_>>>,
     ) = Loop::init(
-        move |_dt, events: Vec<saunter::event::Event<winit::event::Event<()>>>, time| {
+        move |_dt, events, _, time| {
             val = 1.0 - val;
 
             for event in events {
-                if let saunter::event::Event::Other(event) = event {
-                    if let winit::event::Event::WindowEvent { event, .. } = event {
-                        log::info!("Tick {:?}", event);
-                    }
+                if let winit::event::Event::WindowEvent { event, .. } = event {
+                    log::info!("Tick {:?}", event);
                 }
             }
 
@@ -43,8 +41,8 @@ fn main() {
         TPS,
     );
 
-    let tick_loop_tics = ticks.clone();
-    thread::spawn(move || tick_loop.start(tick_loop_tics));
+    let tick_loop_ticks = ticks.clone();
+    thread::spawn(move || tick_loop.start(tick_loop_ticks));
 
     let event_loop = winit::event_loop::EventLoop::new().unwrap();
     let _window = winit::window::WindowBuilder::new()
@@ -65,9 +63,7 @@ fn main() {
                 _ => {}
             }
 
-            event_sender
-                .send(Event::Other(event))
-                .unwrap_or_else(|err| log::error!("{:?}", err));
+            ctrl.stop();
 
             let read_ticks = ticks.read().unwrap();
 

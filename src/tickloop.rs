@@ -2,29 +2,51 @@
 
 use log;
 use std::sync::mpsc::{self, Receiver, Sender};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
 use crate::error::SaunterError;
-use crate::event::Event;
 use crate::snapshot::{Snapshot, Snapshots};
-type Listener<T, E> = dyn FnMut(f32, Vec<Event<E>>, Instant) -> Result<T, SaunterError> + Send;
+type Listener<T, E> =
+    dyn FnMut(f32, Vec<E>, LoopControl, Instant) -> Result<T, SaunterError> + Send;
+
+pub enum LoopState {
+    Running,
+    Stopped,
+}
+
+pub struct LoopControl {
+    state: Arc<Mutex<LoopState>>,
+}
+
+impl LoopControl {
+    pub fn stop(&mut self) {
+        let mut state = self.state.lock().unwrap();
+        *state = LoopState::Stopped;
+    }
+}
 
 /// The Loop struct is the heart of saunter. It calls [`tick`](crate::listener::Listener::tick) on the [`Listener`](crate::listener::Listener) passed to it and updates the [`Ticks`](crate::tick::Ticks) struct passed to it.
 pub struct Loop<T: Snapshot, E: Send + Clone> {
     pub listener: Box<Listener<T, E>>,
     pub tick_length: Duration,
     pub tps: f32,
-    pub events: Vec<Event<E>>,
-    reciever: Receiver<Event<E>>,
+    pub events: Vec<E>,
+    reciever: Receiver<E>,
+    state: Arc<Mutex<LoopState>>,
 }
 
 impl<'a, T: Snapshot, E: Send + Clone> Loop<T, E> {
     /// Creates a new Loop struct.
     /// It is recommended to use [`init`](crate::tickloop::Loop::init) instead.
-    pub fn new<F>(listener: F, tps: f32, reciever: Receiver<Event<E>>) -> Self
+    pub fn new<F>(
+        listener: F,
+        tps: f32,
+        reciever: Receiver<E>,
+        state: Arc<Mutex<LoopState>>,
+    ) -> Self
     where
-        F: FnMut(f32, Vec<Event<E>>, Instant) -> Result<T, SaunterError> + Send + 'static,
+        F: FnMut(f32, Vec<E>, LoopControl, Instant) -> Result<T, SaunterError> + Send + 'static,
     {
         let tick_length = Duration::from_secs_f32(1.0 / tps);
         Loop {
@@ -33,6 +55,7 @@ impl<'a, T: Snapshot, E: Send + Clone> Loop<T, E> {
             tps,
             events: Vec::new(),
             reciever,
+            state,
         }
     }
 
@@ -43,18 +66,23 @@ impl<'a, T: Snapshot, E: Send + Clone> Loop<T, E> {
         tps: f32,
     ) -> (
         Self,
-        Sender<Event<E>>,
+        Sender<E>,
+        LoopControl,
         &'static mut Arc<RwLock<Snapshots<T>>>,
     )
     where
-        F: FnMut(f32, Vec<Event<E>>, Instant) -> Result<T, SaunterError> + Send + 'static,
+        F: FnMut(f32, Vec<E>, LoopControl, Instant) -> Result<T, SaunterError> + Send + 'static,
     {
-        let (event_sender, event_reciever) = mpsc::channel::<Event<E>>();
+        let (event_sender, event_reciever) = mpsc::channel::<E>();
         let ticks = Box::leak(Box::new(Arc::new(RwLock::new(Snapshots::new(first_tick)))));
+        let state = Arc::new(Mutex::new(LoopState::Running));
 
         (
-            Self::new(listener, tps, event_reciever),
+            Self::new(listener, tps, event_reciever, state.clone()),
             event_sender,
+            LoopControl {
+                state: state.clone(),
+            },
             ticks,
         )
     }
@@ -66,16 +94,19 @@ impl<'a, T: Snapshot, E: Send + Clone> Loop<T, E> {
         'a: loop {
             let tick_time = std::time::Instant::now();
 
-            self.events = self.reciever.try_iter().collect();
-            for event in self.events.iter() {
-                if let Event::Close = event {
-                    break 'a;
-                }
+            match *self.state.lock().unwrap() {
+                LoopState::Stopped => break 'a,
+                LoopState::Running => {}
             }
+
+            self.events = self.reciever.try_iter().collect();
 
             if let Ok(tick) = (self.listener)(
                 self.tick_length.as_secs_f32(),
                 self.events.clone(),
+                LoopControl {
+                    state: self.state.clone(),
+                },
                 tick_time,
             ) {
                 let mut tick_wlock = ticks.write().unwrap();

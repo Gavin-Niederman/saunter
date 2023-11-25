@@ -85,7 +85,6 @@
 //! To help with optimization, it is best practise to immediatly drop the read lock when you are done with it.
 
 pub mod error;
-pub mod event;
 pub mod interpolate;
 pub mod snapshot;
 pub mod tickloop;

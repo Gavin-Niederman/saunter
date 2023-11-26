@@ -26,16 +26,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'printputs'",
+            "name": "Debug example 'no-window'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=printputs",
+                    "--example=no-window",
                     "--package=saunter"
                 ],
                 "filter": {
-                    "name": "printputs",
-                    "kind": "bin"
+                    "name": "no-window",
+                    "kind": "example"
                 }
             },
             "args": [],
@@ -44,17 +44,73 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'printputs'",
+            "name": "Debug unit tests in example 'no-window'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=printputs",
+                    "--example=no-window",
                     "--package=saunter"
                 ],
                 "filter": {
-                    "name": "printputs",
-                    "kind": "bin"
+                    "name": "no-window",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'winit'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=winit",
+                    "--package=saunter"
+                ],
+                "filter": {
+                    "name": "winit",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'winit'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=winit",
+                    "--package=saunter"
+                ],
+                "filter": {
+                    "name": "winit",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=tests",
+                    "--package=saunter"
+                ],
+                "filter": {
+                    "name": "tests",
+                    "kind": "test"
                 }
             },
             "args": [],

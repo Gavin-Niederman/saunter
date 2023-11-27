@@ -1,15 +1,8 @@
 mod snapshot;
 
-use std::{
-    sync::{Arc, RwLock},
-    thread,
-    time::Instant,
-};
+use std::{thread, time::Instant};
 
-use saunter::{
-    snapshot::{Snapshot, Snapshots},
-    tickloop::TickLoop,
-};
+use saunter::{snapshot::Snapshot, tickloop::TickLoop};
 use snapshot::NoWindowSnapshot;
 
 const TPS: f32 = 1.0;
@@ -36,8 +29,7 @@ fn main() {
         TPS,
     );
 
-    let tick_loop_tics = ticks.clone();
-    thread::spawn(move || tick_loop.start(tick_loop_tics));
+    thread::spawn(move || tick_loop.start());
 
     loop {
         event_sender

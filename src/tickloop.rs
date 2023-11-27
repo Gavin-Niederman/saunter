@@ -41,13 +41,12 @@ impl TickLoopControl {
 pub struct TickLoop<S: Snapshot, E: Send + Clone> {
     pub listener: Box<Listener<S, E>>,
     pub tick_length: Duration,
-    pub tps: f32,
-    pub events: Vec<E>,
     reciever: Receiver<E>,
     state: Arc<Mutex<TickLoopState>>,
+    snapshots: Arc<RwLock<Snapshots<S>>>,
 }
 
-impl<'a, T: Snapshot, E: Send + Clone> TickLoop<T, E> {
+impl<'a, S: Snapshot, E: Send + Clone> TickLoop<S, E> {
     /// Creates a new Loop struct.
     /// It is recommended to use [`init`](crate::tickloop::Loop::init) instead.
     pub fn new<F>(
@@ -55,17 +54,17 @@ impl<'a, T: Snapshot, E: Send + Clone> TickLoop<T, E> {
         tps: f32,
         reciever: Receiver<E>,
         state: Arc<Mutex<TickLoopState>>,
+        snapshots: Arc<RwLock<Snapshots<S>>>,
     ) -> Self
     where
-        F: FnMut(f32, Vec<E>, TickLoopControl, Instant) -> Result<T, SaunterError> + Send + 'static,
+        F: FnMut(f32, Vec<E>, TickLoopControl, Instant) -> Result<S, SaunterError> + Send + 'static,
     {
         let tick_length = Duration::from_secs_f32(1.0 / tps);
         TickLoop {
             listener: Box::new(listener),
             tick_length,
-            tps,
-            events: Vec::new(),
             reciever,
+            snapshots,
             state,
         }
     }
@@ -73,23 +72,23 @@ impl<'a, T: Snapshot, E: Send + Clone> TickLoop<T, E> {
     /// Creates a new Loop struct and returns a [`Sender`](std::sync::mpsc::Sender) to send events to the loop.
     pub fn init<F>(
         listener: F,
-        first_snapshot: T,
+        first_snapshot: S,
         tps: f32,
     ) -> (
         Self,
         Sender<E>,
         TickLoopControl,
-        &'static mut Arc<RwLock<Snapshots<T>>>,
+        Arc<RwLock<Snapshots<S>>>,
     )
     where
-        F: FnMut(f32, Vec<E>, TickLoopControl, Instant) -> Result<T, SaunterError> + Send + 'static,
+        F: FnMut(f32, Vec<E>, TickLoopControl, Instant) -> Result<S, SaunterError> + Send + 'static,
     {
         let (event_sender, event_reciever) = mpsc::channel::<E>();
-        let snapshots = Box::leak(Box::new(Arc::new(RwLock::new(Snapshots::new(first_snapshot)))));
+        let snapshots = Arc::new(RwLock::new(Snapshots::new(first_snapshot)));
         let state = Arc::new(Mutex::new(TickLoopState::Running));
 
         (
-            Self::new(listener, tps, event_reciever, state.clone()),
+            Self::new(listener, tps, event_reciever, state.clone(), snapshots.clone()),
             event_sender,
             TickLoopControl {
                 state: state.clone(),
@@ -99,7 +98,7 @@ impl<'a, T: Snapshot, E: Send + Clone> TickLoop<T, E> {
     }
 
     /// Starts the loop. This function will block the current thread. So the loop should be sent to a new thread, and start called on it there.
-    pub fn start(&mut self, snapshots: Arc<RwLock<Snapshots<T>>>) {
+    pub fn start(&mut self) {
         let mut deficit = Duration::from_secs_f32(0.0);
 
         'a: loop {
@@ -114,17 +113,17 @@ impl<'a, T: Snapshot, E: Send + Clone> TickLoop<T, E> {
                 TickLoopState::Running => {}
             }
 
-            self.events = self.reciever.try_iter().collect();
+            let events = self.reciever.try_iter().collect();
 
             if let Ok(snapshot) = (self.listener)(
                 self.tick_length.as_secs_f32(),
-                self.events.clone(),
+                events,
                 TickLoopControl {
                     state: self.state.clone(),
                 },
                 tick_time,
             ) {
-                let mut tick_wlock = snapshots.write().unwrap();
+                let mut tick_wlock = self.snapshots.write().unwrap();
                 log::debug!("lock aquired {:?}", std::time::Instant::now());
                 (*tick_wlock).update(snapshot);
                 // Drop the write lock so the read lock can be acquired.

@@ -1,11 +1,11 @@
 mod tick;
 use tick::WinitTick;
 
-use saunter::snapshot::{Snapshot, Snapshots};
+use saunter::snapshot::Snapshot;
 use saunter::tickloop::TickLoop;
-use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Instant;
+use winit::event::Event;
 
 const TPS: f32 = 66.0;
 
@@ -21,7 +21,7 @@ fn main() {
     let mut val = 1.0;
 
     let (mut tick_loop, _, mut ctrl, snapshots) = TickLoop::init(
-        move |_dt, events, _, time| {
+        move |_dt, events: Vec<Event<()>>, _, time| {
             val = 1.0 - val;
 
             for event in events {
@@ -36,8 +36,7 @@ fn main() {
         TPS,
     );
 
-    let tick_loop_snapshots = snapshots.clone();
-    thread::spawn(move || tick_loop.start(tick_loop_snapshots));
+    thread::spawn(move || tick_loop.start());
 
     let event_loop = winit::event_loop::EventLoop::new().unwrap();
     let _window = winit::window::WindowBuilder::new()

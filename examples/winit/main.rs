@@ -2,7 +2,7 @@ mod tick;
 use tick::WinitTick;
 
 use saunter::snapshot::{Snapshot, Snapshots};
-use saunter::tickloop::Loop;
+use saunter::tickloop::TickLoop;
 use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Instant;
@@ -20,12 +20,7 @@ fn main() {
 
     let mut val = 1.0;
 
-    let (mut tick_loop, _, mut ctrl, ticks): (
-        Loop<_, winit::event::Event<()>>,
-        _,
-        _,
-        &'static mut Arc<RwLock<Snapshots<_>>>,
-    ) = Loop::init(
+    let (mut tick_loop, _, mut ctrl, snapshots) = TickLoop::init(
         move |_dt, events, _, time| {
             val = 1.0 - val;
 
@@ -41,8 +36,8 @@ fn main() {
         TPS,
     );
 
-    let tick_loop_ticks = ticks.clone();
-    thread::spawn(move || tick_loop.start(tick_loop_ticks));
+    let tick_loop_snapshots = snapshots.clone();
+    thread::spawn(move || tick_loop.start(tick_loop_snapshots));
 
     let event_loop = winit::event_loop::EventLoop::new().unwrap();
     let _window = winit::window::WindowBuilder::new()
@@ -65,9 +60,9 @@ fn main() {
 
             ctrl.stop();
 
-            let read_ticks = ticks.read().unwrap();
+            let read_ticks = snapshots.read().unwrap();
 
-            if let Some(last) = &read_ticks.last_tick {
+            if let Some(last) = &read_ticks.last_snapshot {
                 let mapped_t =
                     ((last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0).max(0.0); //subtract 1 to get the previous tick
 

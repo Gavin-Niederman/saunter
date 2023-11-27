@@ -16,8 +16,8 @@ pub trait Snapshot: Interpolate + Clone + Debug {
 
 /// A struct that holds the last tick and the most recent tick. It is used to lerp between the two ticks.
 pub struct Snapshots<T: Snapshot> {
-    pub last_tick: Option<T>,
-    pub new_tick: T,
+    pub last_snapshot: Option<T>,
+    pub new_snapshot: T,
 }
 
 impl<T: Snapshot> Snapshots<T> {
@@ -25,8 +25,8 @@ impl<T: Snapshot> Snapshots<T> {
     /// The first tick should be the default state of the game engine or scene.
     pub fn new(first: T) -> Self {
         Snapshots {
-            last_tick: None,
-            new_tick: first,
+            last_snapshot: None,
+            new_snapshot: first,
         }
     }
 
@@ -36,37 +36,37 @@ impl<T: Snapshot> Snapshots<T> {
         t: f32,
         interpolation: impl Fn(f32) -> f32,
     ) -> Result<T, SaunterError> {
-        if let Some(last) = &self.last_tick {
+        if let Some(last) = &self.last_snapshot {
             Ok(<T as Interpolate>::interpolate(
                 last,
-                &self.new_tick,
+                &self.new_snapshot,
                 t,
                 interpolation,
             ))
         } else {
-            Err(SaunterError::TickError(TickError::TooFewTicks))
+            Err(SaunterError::TickError(SnapshotError::TooFewSnapshots))
         }
     }
 
     /// Drops last tick and replaces it with new tick, and then replaces new tick with the new new tick.
-    pub fn update(&mut self, new_tick: T) {
-        self.last_tick = Some(mem::replace(&mut self.new_tick, new_tick));
+    pub fn update(&mut self, new_snapshot: T) {
+        self.last_snapshot = Some(mem::replace(&mut self.new_snapshot, new_snapshot));
     }
 }
 
 /// Contains errors that can occur when using ticks.
 #[derive(Debug)]
-pub enum TickError {
-    TooFewTicks,
-    CouldNotCreateTick,
+pub enum SnapshotError {
+    TooFewSnapshots,
+    CouldNotCreateSnapshot,
 }
-impl Error for TickError {}
+impl Error for SnapshotError {}
 
-impl Display for TickError {
+impl Display for SnapshotError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            TickError::TooFewTicks => write!(f, "Not enough ticks to lerp"),
-            TickError::CouldNotCreateTick => write!(f, "Could not create a tick"),
+            SnapshotError::TooFewSnapshots => write!(f, "Not enough ticks to lerp"),
+            SnapshotError::CouldNotCreateSnapshot => write!(f, "Could not create a tick"),
         }
     }
 }

@@ -5,12 +5,12 @@ use std::{
     fmt::{Display, Formatter},
 };
 
-use crate::snapshot::TickError;
+use crate::snapshot::SnapshotError;
 
 /// The error enum, which holds either a [`MathError`](crate::math::MathError) or a [`TickError`](crate::tick::TickError).
 #[derive(Debug)]
 pub enum SaunterError {
-    TickError(TickError),
+    TickError(SnapshotError),
 }
 impl Error for SaunterError {}
 impl Display for SaunterError {

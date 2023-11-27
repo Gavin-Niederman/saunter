@@ -1,4 +1,4 @@
-mod tick;
+mod snapshot;
 
 use std::{
     sync::{Arc, RwLock},
@@ -8,9 +8,9 @@ use std::{
 
 use saunter::{
     snapshot::{Snapshot, Snapshots},
-    tickloop::Loop,
+    tickloop::TickLoop,
 };
-use tick::NoWindowTick;
+use snapshot::NoWindowSnapshot;
 
 const TPS: f32 = 1.0;
 
@@ -25,19 +25,14 @@ fn main() {
 
     let mut val = 1.0;
 
-    let (mut tick_loop, event_sender, _, ticks): (
-        Loop<_, ()>,
-        _,
-        _,
-        &'static mut Arc<RwLock<Snapshots<_>>>,
-    ) = Loop::init(
+    let (mut tick_loop, event_sender, _, ticks) = TickLoop::init(
         move |_dt, _events, _ctrl, time| {
             val = 1.0 - val;
             log::info!("ticked {}", val);
 
-            Ok(NoWindowTick { val, time })
+            Ok(NoWindowSnapshot { val, time })
         },
-        NoWindowTick::new(Instant::now(), 0.0),
+        NoWindowSnapshot::new(Instant::now(), 0.0),
         TPS,
     );
 
@@ -51,7 +46,7 @@ fn main() {
 
         let read_ticks = ticks.read().unwrap();
 
-        if let Some(last) = &read_ticks.last_tick {
+        if let Some(last) = &read_ticks.last_snapshot {
             let mapped_t = ((last.get_time().elapsed().as_secs_f32() * TPS as f32) - 1.0).max(0.0); //subtract 1 to get the previous tick
             if let Ok(lerped) = read_ticks.interpolate_ticks(mapped_t, saunter::interpolate::linear)
             {

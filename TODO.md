@@ -9,5 +9,4 @@
   - [ ] Remove Boilerplate
   - [ ] Adjust naming to be more clear
 - Misc
-  - [ ] Add more event types to the event enum.
   - [ ] Add more examples in different windowing libraries.

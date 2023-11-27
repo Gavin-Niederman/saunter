@@ -1,88 +1,113 @@
 //! # Saunter
 //!
-//! A library for tick based game engines.
+//! A library that aids in the creation of tick based game engines.
+//! A tick based game engine is a game engine where all game logic is run at a set interval.
+//! This has a few advantages over more traditional game engines. For example, it is very easy to split game logic and rendering into separate threads.
+//! Because the interval of your game logic, or its TPS, will most likely be different from the FPS you are rendering at, interpolation can be used to keep everything smooth.
 //!
-//! ## How to use Saunter
+//! ## Table of contents
+//! - [Saunter](#saunter)
+//!   - [Table of contents](#table-of-contents)
+//!   - [Components of Saunter](#components-of-saunter)
+//!     - [TickLoop](#tickloop)
+//!     - [Snapshot](#snapshot)
+//!     - [Interpolation](#interpolation)
+//!   - [Usage](#usage)
 //!
-//! The core of saunter is the loop. The loop calls the tick function on the provided listener.
-//! Your listener should store the state of your game engine or the current scene in your engine.
+//! ## Components of Saunter
 //!
+//! Saunter has a few main components:
+//! - TickLoop
+//! - Snapshot(s)
+//! - Interpolation
+//!
+//! ### [`TickLoop`](tickloop::TickLoop)
+//!
+//! The tick loop is the heart of Saunter; It runs all of your code at a set tick rate (TPS). If your code takes longer than the tick interval to run, the tick loop will run as fast as possible until it catches back up.
+//!
+//! ### Snapshot
+//!
+//! Every time your code runs, it will generate a snapshot. A snapshot is a representation of the state of your game at a given tick.
+//! The snapshot is then put into a Snapshots, which is used to interpolate between snapshots outside of the tick loop.
+//! In general, it is advised to put as little data as possible into your snapshot, as it is moved around in memory quite a bit.
+//!
+//! ### Interpolation
+//!
+//! Saunter provides utilities for interpolating data. Mainly, it provides an [`Interpolate`](interpolate::Interpolate) trait and many common interpolators. The [`Interpolate`](interpolate::Interpolate) trait is already implemented for many types in the standard library, including all of the number primitives and vectors that hold them.
+//! An [`Interpolate`](derive::Interpolate) derive proc macro is also provided for ease of use, when using the derive feature.
+//! Interpolation is very neccessary to make games in your engine look smooth. Without it, your game will look very choppy, especially at low TPS.
+//!
+//! ## Usage
+//!
+//! The first step of using Saunter is to create a [`TickLoop`](tickloop::TickLoop). The easiest way to do this is to call `TickLoop::init` which does some setup for you.
 //! ```rust
-//! struct ExampleListener {
-//!     val: f32,
-//! }
-//! impl Listener for ExampleListener {
-//!     // The type of the tick that tick function returns
-//!     type TickType = ExampleTick;
-//!     // The type of event that is passed to tick in the Event::Other(EventType) variant
-//!     type EventType = ExampleEvent;
-//!
-//!     fn tick(
-//!         &mut self,
-//!         dt: f32,
-//!         events: &mut Vec<Event<Self::EventType>>,
-//!         time: Instant,
-//!     ) -> Result<Self::TickType, SaunterError> {
-//!
-//!         self.val = 1.0 - self.val;
-//!         log::info!("{}", self.val);
-//!
-//!         Ok(Self::TickType {val: self.val})
-//!     }
-//! }
+//! let (tick_loop, event_sender, ctrl, snapshots) = TickLoop::init(
+//!     listener: move |dt, events, ctrl, time| {
+//!         // Your engine logic goes here
+//!         // Note that this won't work because we aren't returning a snapshot yet.
+//!         todo!()
+//!     },
+//!     first_snapshot: todo!(), // We don't have a snapshot type yet!
+//!     tps: 60.0, // This can be any positive float.
+//! );
 //! ```
+//! This function takes a lot of input and returns a lot of output. Let's go over each of them.
 //!
-//! You may have noticed the type Tick being used a lot here.
-//! Ticks store a snapshot of the state of the listener. The tick function returns the tick that was just processed.
-//! In a game engine a tick would only ever be used for rendering.
-//! no game logic should happen in the render thread.
-//! Because we only need to send things used for rendering in the tick you should try your best to limit what gets sent in a tick for optimization.
+//! Inputs:
+//! - `listener`: This is a FnMut closure that will be called every tick and returns your snapshot type. It takes 4 arguments:
+//!   - `dt`: The time since the last tick in seconds.
+//!   - `events`: A vector of events that have been sent to the loop since the last tick.
+//!   - `ctrl`: A `TickLoopControl` that can be used to control the state of the tick loop.
+//!   - `time`: The current time, used for creating snapshots (they need to store the time of creation).
+//! - `first_snapshot`: This is put into the Snapshots so that it is full after the first time the listener is run.
+//! - tps: The TPS of the loop.
+//!   
+//! Outputs:
+//! - `tick_loop`: The tick loop itself.
+//! - `event_sender`: A `Sender` that can be used to send events to the tick loop.
+//! - `ctrl`: A `TickLoopControl` that can be used to control the state of the tick loop from outside of the loop.
+//! - snapshots: A `Snapshots` that holds all of the snapshots generated by the tick loop.
 //!
+//! With that out of the way, let's make our snapshot type. This is a very simple example, but you can put as much data as you need into your snapshot.
 //! ```rust
-//! struct ExampleTick {
-//!     // Ticks store the time they were made so that they can be interpolated
-//!     pub time: Instant,
-//!
-//!     pub val: f32,
+//! #[derive(Debug, Clone, Interpolate)]
+//! struct ExampleSnapshot {
+//!     time: Instant,
+//!     value: f64,
 //! }
-//! impl Tick for ExampleTick {
-//!     // This is called by ticks when b is the most recent tick and self is the last to interpolate between the two
-//!     fn lerp(&self, b: &Self, t: f32) -> Result<Self, MathError> {
-//!         Ok( Self {
-//!             // Saunter provides lerp functions.
-//!             time: math::lerp_instant(&self.time, &b.time, t)?,
-//!             val: math::lerp(self.val, b.val, t)?,
-//!         })
-//!     }
-//!
+//! impl Snapshot for ExampleSnapshot {
 //!     fn get_time(&self) -> &Instant {
 //!         &self.time
 //!     }
 //! }
 //! ```
-//!
-//! Now we can create the loop! The easiest way to create a loop is using `Loop::init()`
-//!
+//! Now we can put it to use!
 //! ```rust
-//! let (mut tick_loop, event_sender, ticks) = Loop::init(
-//!     // The listener that the loop will call tick() on
-//!     Box::new(listener),
-//!     // The state of the engine or scene when the program is started. AKA the first tick
-//!     first_tick,
-//!     // The number of ticks to occur per second (TPS), does not have to be an integer
-//!     tps,
+//! let mut value = 0.0;
+//!
+//! let _ = TickLoop::init(
+//!     move |dt, events, ctrl, time| {
+//!         value = 1.0 - value;
+//!         ExampleSnapshot {
+//!             time,
+//!             value,
+//!         }
+//!     },
+//!     ExampleSnapshot {
+//!             time: Instant::now(),
+//!             value: 0.0,
+//!         },
+//!     60.0,
 //! );
 //! ```
 //!
-//! Now that you have a loop all that is left is to send it events. To do this you can use the event_sender that was returned by `Loop::init()`. The event sender is a `Sender<Event<EventType>>` where EventType is the type of event you specified in your listener. **EventType is wrapped in a ``saunter::event::Event``**. This is to guarentee that you can send a close event to the loop. To send an event you can use the `send()` method on the event sender.
+//! Finally, we can start our tick loop!
+//! ```rust
+//! tick_loop.start(snapshots);
+//! ```
+//! Starting a tick loop blocks the thread until it is stopped. For this reason you probably want to send the tick loop to a seperate thread before running it.
 //!
-//! ### Wait? What is a Ticks?
-//!
-//! The ticks type is used to store the most recent and last tick.
-//! It has a lerp funtion that returns a new tick interpolated by the amount specified between the two ticks for use in rendering, or whatever you choose.
-//! The ticks returned by ``Loop::init()`` is not actually a ticks, it is a ``Arc<RwLock<Ticks<...>>>``,
-//! This is because it is constantly being updated by the tickloop. For this reason, **only ever have a read lock on ticks**.
-//! To help with optimization, it is best practise to immediatly drop the read lock when you are done with it.
+//! Now you have a working tick loop! You can send events to it using the `event_sender` and control it using `ctrl`.
 
 pub mod error;
 pub mod interpolate;

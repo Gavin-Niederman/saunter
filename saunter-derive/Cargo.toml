@@ -2,6 +2,9 @@
 name = "saunter-derive"
 version = "0.1.0"
 edition = "2021"
+description = "Proc macros for the Saunter crate"
+license = "MIT"
+repository = "https://github.com/Gavin-Niederman/saunter"
 
 [lib]
 proc-macro = true

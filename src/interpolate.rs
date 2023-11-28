@@ -1,5 +1,11 @@
+//! Contains interpolation utilities.
+//! Mainly, it provides an [`Interpolate`] trait and many common interpolators. The [`Interpolate`] trait is already implemented for many types in the standard library, including all of the number primitives and vectors that hold them.
+//! An `Interpolate` derive macro is also provided for ease of use, when using the derive feature.
+//! Interpolation is very neccessary to make games in your engine look smooth. Without it, your game will look very choppy, especially at low TPS.
+
 use std::time::Instant;
 
+/// A trait that allows a type to be interpolated.
 pub trait Interpolate {
     fn interpolate(start: &Self, end: &Self, t: f32, interpolation: impl Fn(f32) -> f32) -> Self
     where

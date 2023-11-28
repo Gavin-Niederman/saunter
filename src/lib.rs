@@ -27,7 +27,7 @@
 //!
 //! ### Snapshot
 //!
-//! Every time your code runs, it will generate a snapshot. A snapshot is a representation of the state of your game at a given tick.
+//! Every time your listener runs, it will generate a snapshot. A snapshot is a representation of the state of your game at a given tick.
 //! The snapshot is then put into a Snapshots, which is used to interpolate between snapshots outside of the tick loop.
 //! In general, it is advised to put as little data as possible into your snapshot, as it is moved around in memory quite a bit.
 //!
@@ -47,7 +47,6 @@
 //!         // Note that this won't work because we aren't returning a snapshot yet.
 //!         todo!()
 //!     },
-//!     first_snapshot: todo!(), // We don't have a snapshot type yet!
 //!     tps: 60.0, // This can be any positive float.
 //! );
 //! ```
@@ -59,7 +58,6 @@
 //!   - `events`: A vector of events that have been sent to the loop since the last tick.
 //!   - `ctrl`: A `TickLoopControl` that can be used to control the state of the tick loop.
 //!   - `time`: The current time, used for creating snapshots (they need to store the time of creation).
-//! - `first_snapshot`: This is put into the Snapshots so that it is full after the first time the listener is run.
 //! - tps: The TPS of the loop.
 //!   
 //! Outputs:

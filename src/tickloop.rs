@@ -1,4 +1,7 @@
-//! Contains the [`Loop`](crate::tickloop::Loop) struct.
+//! Contains the [`TickLoop`] struct.
+//! The tick loop is the heart of Saunter; It runs all of your code at a set tick rate (TPS).
+//! If your code takes longer than the tick interval to run,
+//! the tick loop will run as fast as possible until it catches back up.
 
 use log;
 use std::sync::mpsc::{self, Receiver, Sender};
@@ -37,7 +40,8 @@ impl TickLoopControl {
     }
 }
 
-/// The Loop struct is the heart of saunter. It calls [`tick`](crate::listener::Listener::tick) on the [`Listener`](crate::listener::Listener) passed to it and updates the [`Ticks`](crate::tick::Ticks) struct passed to it.
+/// The tick loop is the heart of Saunter.
+/// The tick loop runs your code at a set tick rate and generates [`Snapshots`]
 pub struct TickLoop<S: Snapshot, E: Send + Clone> {
     pub listener: Box<Listener<S, E>>,
     pub tick_length: Duration,
@@ -48,7 +52,7 @@ pub struct TickLoop<S: Snapshot, E: Send + Clone> {
 
 impl<'a, S: Snapshot, E: Send + Clone> TickLoop<S, E> {
     /// Creates a new Loop struct.
-    /// It is recommended to use [`init`](crate::tickloop::Loop::init) instead.
+    /// It is recommended to use [`init`](TickLoop::init) instead.
     pub fn new<F>(
         listener: F,
         tps: f32,
@@ -69,10 +73,9 @@ impl<'a, S: Snapshot, E: Send + Clone> TickLoop<S, E> {
         }
     }
 
-    /// Creates a new Loop struct and returns a [`Sender`](std::sync::mpsc::Sender) to send events to the loop.
+    /// Creates a new Loop struct and returns a [`Sender`] to send events to the loop.
     pub fn init<F>(
         listener: F,
-        first_snapshot: S,
         tps: f32,
     ) -> (
         Self,
@@ -84,7 +87,7 @@ impl<'a, S: Snapshot, E: Send + Clone> TickLoop<S, E> {
         F: FnMut(f32, Vec<E>, TickLoopControl, Instant) -> Result<S, SaunterError> + Send + 'static,
     {
         let (event_sender, event_reciever) = mpsc::channel::<E>();
-        let snapshots = Arc::new(RwLock::new(Snapshots::new(first_snapshot)));
+        let snapshots = Arc::new(RwLock::new(Snapshots::new()));
         let state = Arc::new(Mutex::new(TickLoopState::Running));
 
         (

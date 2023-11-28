@@ -16,7 +16,7 @@ edition = "2021"
 [dependencies]
 log = "0.4.17"
 spin_sleep = "1.1.1"
-saunter-derive = { path = "./saunter-derive", optional = true }
+saunter-derive = { version = "0.1.0", path = "./saunter-derive", optional = true }
 
 [dev-dependencies]
 winit = "0.29.4"

@@ -7,7 +7,7 @@ use crate::{error::SaunterError, interpolate::Interpolate};
 use std::{fmt::Debug, mem, time::Instant};
 
 // A snapshot of the state of the game engine. It also must store the time of creation in some way.
-pub trait Snapshot: Interpolate + Clone + Debug {
+pub trait Snapshot: Interpolate + Debug {
     /// Returns the time that the snapshot was created.
     fn get_time(&self) -> &Instant;
 }

@@ -68,7 +68,7 @@
 //!
 //! With that out of the way, let's make our snapshot type. This is a very simple example, but you can put as much data as you need into your snapshot.
 //! ```rust
-//! #[derive(Debug, Clone, Interpolate)]
+//! #[derive(Debug, Interpolate)]
 //! struct ExampleSnapshot {
 //!     time: Instant,
 //!     value: f64,

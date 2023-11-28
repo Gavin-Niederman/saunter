@@ -32,7 +32,6 @@ fn main() {
 
             Ok(WinitTick::new(time, val))
         },
-        WinitTick::new(Instant::now(), 0.0),
         TPS,
     );
 

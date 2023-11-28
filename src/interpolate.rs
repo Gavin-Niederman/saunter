@@ -48,7 +48,7 @@ impl Interpolate for Instant {
         let start = start.elapsed().as_secs_f32();
         let end = end.elapsed().as_secs_f32();
         let t = interpolation(t);
-        let secs = lerp(start, end, t);
+        let secs = lerp(start, end, t).max(0.0);
         Instant::now() - std::time::Duration::from_secs_f32(secs)
     }
 }

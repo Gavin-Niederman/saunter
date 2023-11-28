@@ -5,11 +5,11 @@ use std::{thread, time::Instant};
 use saunter::{snapshot::Snapshot, tickloop::TickLoop};
 use snapshot::NoWindowSnapshot;
 
-const TPS: f32 = 1.0;
+const TPS: f32 = 30.0;
 
 fn main() {
     simplelog::TermLogger::init(
-        log::LevelFilter::Info,
+        log::LevelFilter::Debug,
         simplelog::Config::default(),
         simplelog::TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
@@ -25,7 +25,6 @@ fn main() {
 
             Ok(NoWindowSnapshot { val, time })
         },
-        NoWindowSnapshot::new(Instant::now(), 0.0),
         TPS,
     );
 

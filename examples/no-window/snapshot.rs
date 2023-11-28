@@ -3,7 +3,7 @@ use std::time::Instant;
 use saunter::derive::Interpolate;
 use saunter::snapshot::Snapshot;
 
-#[derive(Debug, Clone, Interpolate)]
+#[derive(Debug, Interpolate)]
 pub struct NoWindowSnapshot {
     pub time: Instant,
     pub val: f32,

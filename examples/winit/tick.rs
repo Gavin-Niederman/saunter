@@ -1,7 +1,7 @@
 use saunter::derive::Interpolate;
 use std::time::Instant;
 
-#[derive(Clone, Debug, Interpolate)]
+#[derive(Debug, Interpolate)]
 pub struct WinitTick {
     time: Instant,
     pub val: f32,

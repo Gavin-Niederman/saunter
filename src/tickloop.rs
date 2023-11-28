@@ -42,7 +42,7 @@ impl TickLoopControl {
 
 /// The tick loop is the heart of Saunter.
 /// The tick loop runs your code at a set tick rate and generates [`Snapshots`]
-pub struct TickLoop<S: Snapshot, E: Send + Clone> {
+pub struct TickLoop<S: Snapshot, E: Send> {
     pub listener: Box<Listener<S, E>>,
     pub tick_length: Duration,
     reciever: Receiver<E>,
@@ -50,7 +50,7 @@ pub struct TickLoop<S: Snapshot, E: Send + Clone> {
     snapshots: Arc<RwLock<Snapshots<S>>>,
 }
 
-impl<'a, S: Snapshot, E: Send + Clone> TickLoop<S, E> {
+impl<'a, S: Snapshot, E: Send> TickLoop<S, E> {
     /// Creates a new Loop struct.
     /// It is recommended to use [`init`](TickLoop::init) instead.
     pub fn new<F>(

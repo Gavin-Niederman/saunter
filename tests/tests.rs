@@ -2,7 +2,7 @@ use saunter::derive::Interpolate;
 use saunter::snapshot::{Snapshot, Snapshots};
 use std::time::Instant;
 
-#[derive(Copy, Clone, Debug, Interpolate)]
+#[derive(Copy, Debug, Interpolate)]
 struct TestTick {
     tick: u8,
 }
@@ -17,7 +17,7 @@ impl Snapshot for TestTick {
 fn test_ticks_update() {
     let mut ticks = Snapshots {
         last_snapshot: None,
-        new_snapshot: TestTick { tick: 0 },
+        new_snapshot: Some(TestTick { tick: 0 }),
     };
 
     assert!(ticks.last_snapshot.is_none());
